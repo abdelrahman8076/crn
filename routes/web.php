@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\AdminController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -18,3 +19,17 @@ Route::middleware('auth')->group(function () {
 });
 
 require __DIR__.'/auth.php';
+
+Route::prefix('admin')
+    ->name('admin.')
+    ->middleware(['auth:admin']) // remove this if you have no admin authentication
+    ->group(function () {
+
+        // Dashboard
+        Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+
+        // Admin CRUD
+        Route::get('/admins/data', [AdminController::class, 'data'])->name('admin.data');
+
+        Route::resource('admin', AdminController::class);
+    });

@@ -2,47 +2,74 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
         'name',
         'email',
         'password',
+        'role_id',
+        'manager_id', // <-- used for sales team under managers
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Relationships
+    |--------------------------------------------------------------------------
+    */
+
+    // User belongs to a role (Admin / Manager / Sales)
+    public function role()
+    {
+        return $this->belongsTo(Role::class);
+    }
+
+    // A manager has many sales under him
+    public function salesTeam()
+    {
+        return $this->hasMany(User::class, 'manager_id');
+    }
+
+    // A sales/user belongs to a manager
+    public function manager()
+    {
+        return $this->belongsTo(User::class, 'manager_id');
+    }
+
+    // User (sales or manager) has assigned clients
+    public function clients()
+    {
+        return $this->hasMany(Client::class, 'assigned_to');
+    }
+
+    // User has many tasks he created or assigned
+    public function tasks()
+    {
+        return $this->hasMany(Task::class, 'user_id');
+    }
+
+    // User adds many notes
+    public function notes()
+    {
+        return $this->hasMany(Note::class, 'user_id');
     }
 }
