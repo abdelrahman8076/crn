@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
@@ -13,21 +14,26 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        $user = Auth::user();
+        $user = $this->getLoggedUser();
 
-        // Check if user is in 'admins' table (full access)
+        if (!$user) {
+            return redirect('/login')->withErrors('Session expired, please login again.');
+        }
+
+        // If logged user exists in admins table → full access
         $isSuperAdmin = Admin::where('email', $user->email)->exists();
 
         // Base queries
         $clientQuery = Client::query();
         $leadQuery   = Lead::query();
-        $dealQuery   = Deal::query()->whereHas('lead', function($q) {});
+        $dealQuery   = Deal::query()->whereHas('lead', fn($q) => $q);
 
         if (!$isSuperAdmin) {
             // Role-based filtering
             switch ($user->role?->name) {
+
                 case 'Manager':
-                    $teamIds = $user->team->pluck('id')->toArray(); // assuming User model has team() relation
+                    $teamIds = $user->team->pluck('id')->toArray();
                     $teamIds[] = $user->id;
 
                     $clientQuery->whereIn('assigned_to', $teamIds);
@@ -42,20 +48,33 @@ class DashboardController extends Controller
                     break;
 
                 default:
-                    // Other users see nothing
                     $clientQuery->whereRaw('0 = 1');
                     $leadQuery->whereRaw('0 = 1');
                     $dealQuery->whereRaw('0 = 1');
             }
         }
 
-        $data = [
-            'totalUsers'   => User::count(),
-            'totalClients' => $clientQuery->count(),
-            'totalLeads'   => $leadQuery->count(),
-            'totalDeals'   => $dealQuery->count(),
-        ];
+    // 🔥 FIX: always an array of integers
+    $data = [
+        'totalUsers'   => (int) User::count(),
+        'totalClients' => (int) $clientQuery->count(),
+        'totalLeads'   => (int) $leadQuery->count(),
+        'totalDeals'   => (int) $dealQuery->count(),
+    ];
 
-        return view('admin.dashboard', compact('data'));
+    return view('admin.dashboard', compact('data'));
+    }
+
+    private function getLoggedUser()
+    {
+        if (Auth::guard('admin')->check()) {
+            return Auth::guard('admin')->user();
+        }
+
+        if (Auth::guard('web')->check()) {
+            return Auth::guard('web')->user();
+        }
+
+        return null;
     }
 }

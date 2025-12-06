@@ -33,16 +33,16 @@
                 <span class="hide-menu">{{ __('aside.Users') }}</span>
             </a>
         </li>
-        <li class="sidebar-item">
+        {{-- <li class="sidebar-item">
             <a class="sidebar-link" href="{{ route('admin.roles.index') }}" aria-expanded="false">
                 <i class="ti ti-shield-check"></i>
                 <span class="hide-menu">{{ __('aside.Roles') }}</span>
             </a>
-        </li>
+        </li> --}}
 
         <!-- Clients -->
         <li class="sidebar-item">
-            <a class="sidebar-link" href="{{ route('clients.index') }}" aria-expanded="false">
+            <a class="sidebar-link" href="{{ route('admin.clients.index') }}" aria-expanded="false">
                 <i class="ti ti-building"></i>
                 <span class="hide-menu">{{ __('aside.Clients') }}</span>
             </a>
@@ -50,7 +50,7 @@
 
         <!-- Leads -->
         <li class="sidebar-item">
-            <a class="sidebar-link" href="{{ route('leads.index') }}" aria-expanded="false">
+            <a class="sidebar-link" href="{{ route('admin.leads.index') }}" aria-expanded="false">
                 <i class="ti ti-target"></i>
                 <span class="hide-menu">{{ __('aside.Leads') }}</span>
             </a>
@@ -58,7 +58,7 @@
 
         <!-- Deals -->
         <li class="sidebar-item">
-            <a class="sidebar-link" href="{{ route('deals.index') }}" aria-expanded="false">
+            <a class="sidebar-link" href="{{ route('admin.deals.index') }}" aria-expanded="false">
                 <i class="ti ti-handshake"></i>
                 <span class="hide-menu">{{ __('aside.Deals') }}</span>
             </a>
@@ -66,7 +66,7 @@
 
         <!-- Tasks -->
         <li class="sidebar-item">
-            <a class="sidebar-link" href="{{ route('tasks.index') }}" aria-expanded="false">
+            <a class="sidebar-link" href="{{ route('admin.tasks.index') }}" aria-expanded="false">
                 <i class="ti ti-list-check"></i>
                 <span class="hide-menu">{{ __('aside.Tasks') }}</span>
             </a>
@@ -74,7 +74,7 @@
 
         <!-- Notes -->
         <li class="sidebar-item">
-            <a class="sidebar-link" href="{{ route('notes.index') }}" aria-expanded="false">
+            <a class="sidebar-link" href="{{ route('admin.notes.index') }}" aria-expanded="false">
                 <i class="ti ti-notes"></i>
                 <span class="hide-menu">{{ __('aside.Notes') }}</span>
             </a>

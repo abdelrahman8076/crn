@@ -15,10 +15,13 @@ class LeadsController extends Controller
 {
     use HasAccessFilter;
 
-    // Show leads index page
     public function index()
     {
-        return view('admin.leads.index');
+        $columns = ['id', 'name', 'email', 'phone', 'company', 'assigned_to'];
+        $renderComponents = true; // or false based on your condition
+        $customActionsView = 'components.default-buttons-table'; // full view path
+
+        return view('admin.leads.index', compact('columns', 'renderComponents', 'customActionsView'));
     }
 
     // Datatable / AJAX data

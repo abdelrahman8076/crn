@@ -9,12 +9,27 @@ use App\Http\Controllers\Admin\LeadsController;
 use App\Http\Controllers\Admin\TasksController;
 use App\Http\Controllers\Admin\NotesController;
 use App\Http\Controllers\Admin\UsersController;
+use App\Http\Controllers\Admin\AdminAuthController;
+use App\Http\Controllers\Admin\DashboardController;
+
 
 
 
 Route::get('/', function () {
     return view('welcome');
 });
+Route::get('admin/login', [AdminAuthController::class, 'showLoginForm'])->name('admin.login');
+Route::post('admin/login', [AdminAuthController::class, 'login'])->name('admin.login.submit');
+Route::get('locale/{locale}', function ($locale) {
+    if (in_array($locale, ['en', 'ar'])) {
+        session(['locale' => $locale]);
+    }
+    return redirect()->back();
+})->name('locale.switch');
+
+
+Route::get('admin/register', [AdminAuthController::class, 'showRegisterForm'])->name('admin.register');
+Route::post('admin/register', [AdminAuthController::class, 'register'])->name('admin.register.submit');
 
 Route::get('/dashboard', function () {
     return view('dashboard');
@@ -30,13 +45,17 @@ require __DIR__ . '/auth.php';
 
 Route::prefix('admin')
     ->name('admin.')
-    ->middleware(['auth:admin']) // remove this if you have no admin authentication
+    ->middleware(['admin_or_user']) // remove this if you have no admin authentication
     ->group(function () {
 
         // Dashboard
-        Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
         // Admin CRUD
+
+        Route::post('logout', [AdminAuthController::class, 'logout'])->name('admin.logout');
+
+        //   Route::resource('admin', AdminController::class);
         Route::get('/admins/data', [AdminController::class, 'data'])->name('admin.data');
         Route::get('admin', [AdminController::class, 'index'])->name('admin.index');
         Route::get('admin/create', [AdminController::class, 'create'])->name('admin.create');

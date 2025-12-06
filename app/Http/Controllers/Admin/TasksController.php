@@ -18,7 +18,11 @@ class TasksController extends Controller
     // Display tasks index page
     public function index()
     {
-        return view('admin.tasks.index');
+        $columns = ['id', 'title', 'description', 'assigned_to', 'status', 'created_at'];
+        $renderComponents = true; // or false based on your condition
+        $customActionsView = 'components.default-buttons-table'; // full view path
+
+        return view('admin.tasks.index', compact('columns', 'renderComponents', 'customActionsView'));
     }
 
     // Datatable AJAX data

@@ -19,7 +19,11 @@ class DealsController extends Controller
     // List deals page
     public function index()
     {
-        return view('admin.deals.index');
+        $columns = ['id', 'deal_name', 'amount', 'stage', 'lead_id', 'assigned_to'];
+        $renderComponents = true; // or false based on your condition
+        $customActionsView = 'components.default-buttons-table'; // full view path
+
+        return view('admin.deals.index', compact('columns', 'renderComponents', 'customActionsView'));
     }
 
     // Datatable / AJAX data

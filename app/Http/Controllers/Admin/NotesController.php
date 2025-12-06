@@ -16,9 +16,13 @@ class NotesController extends Controller
     use HasAccessFilter;
 
     // Display notes index page
-    public function index()
+     public function index()
     {
-        return view('admin.notes.index');
+        $columns = ['id', 'title', 'content', 'assigned_to', 'created_at'];
+        $renderComponents = true; // or false based on your condition
+        $customActionsView = 'components.default-buttons-table'; // full view path
+
+        return view('admin.notes.index', compact('columns', 'renderComponents', 'customActionsView'));
     }
 
     // Datatable AJAX data
