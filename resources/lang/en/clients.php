@@ -17,4 +17,20 @@ return [
     'upload'              => 'Upload',
     'tip_columns'         => 'Tip: Make sure the Excel columns match: Name, Email, Phone, Assigned To',
 
+     // Titles
+    'index_title'        => 'Clients',
+
+    'show_title'         => 'Client Details',
+
+    // Buttons
+    'save'               => 'Save Client',
+    'back'               => 'Back',
+
+   
+    'address'            => 'Address',
+    'company'            => 'Company',
+    'notes'              => 'Notes',
+
+    // Other actions
+
 ];

@@ -1,4 +1,4 @@
-<?
+<?php
 return [
     'title' => 'المستخدمين',
     'create_title' => 'إضافة مستخدم',

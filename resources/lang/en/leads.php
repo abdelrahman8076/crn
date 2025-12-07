@@ -1,4 +1,6 @@
-<?return [
+<?php
+
+return [
     'title'         => 'Leads',
     'create_title'  => 'Create Lead',
     'edit_title'    => 'Edit Lead',

@@ -1,4 +1,5 @@
-<?return [
+<?php
+return [
     'title'         => 'العملاء المحتملين',
     'create_title'  => 'إضافة عميل محتمل',
     'edit_title'    => 'تعديل العميل المحتمل',

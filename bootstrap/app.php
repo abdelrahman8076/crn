@@ -13,6 +13,11 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'admin_or_user' => \App\Http\Middleware\AllowAdminOrUser::class,
+            'set_locale' => \App\Http\Middleware\SetLocale::class,
+
+        ]);
+        $middleware->appendToGroup('web', [
+            \App\Http\Middleware\SetLocale::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

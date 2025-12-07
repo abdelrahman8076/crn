@@ -1,4 +1,4 @@
-<?
+<?php
 return [
     'title'         => 'Tasks',
     'create_title'  => 'Create Task',

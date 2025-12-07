@@ -8,11 +8,14 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use App\Services\ExcelImportService;
 use App\Services\DataTables\BaseDataTable;
+use App\Traits\HasAccessFilter;
+
 
 
 class ClientsController extends Controller
 {
     // LIST
+    use HasAccessFilter;
 
     public function index()
     {
@@ -24,23 +27,9 @@ class ClientsController extends Controller
     }
     public function data(Request $request)
     {
-        $query = Client::with('assignedUser')
-            ->when(auth()->user()->role_id == 2, function ($q) {
-                // Sales can only see their own clients
-                $q->where('assigned_to', auth()->id());
-            })
-            ->when(auth()->user()->role_id == 3, function ($q) {
-                // Manager sees own clients + sales under him
-                $managerId = auth()->id();
+        $query = Client::with('assignedUser');
+                   $query = $this->filterAccess($query, 'assigned_to');
 
-                // Get all sales users under this manager
-                $salesIds = User::where('manager_id', $managerId)
-                    ->pluck('id')
-                    ->toArray();
-
-                // Manager sees: his clients + his team’s clients
-                $q->whereIn('assigned_to', array_merge([$managerId], $salesIds));
-            });
 
         $columns = ['id', 'name', 'phone', 'email', 'company', 'address'];
 

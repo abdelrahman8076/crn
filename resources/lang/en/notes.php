@@ -1,4 +1,4 @@
-<?
+<?php
 return [
     'title' => 'Notes',
     'create_title' => 'Create Note',

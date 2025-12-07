@@ -5,15 +5,19 @@
         <x-flash-success />
         <x-flash-error />
 
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h4>{{ ('admins.title') }}</h4>
+        <div class="d-flex justify-content-between align-items-center mb-3 mt-5">
+            <h4>{{ __('admins.title') }}</h4>
 
             <a href="{{ route('admin.admin.create') }}" class="btn btn-primary">
-                <i class="bi bi-plus-circle me-1"></i> {{ ('admins.create_button') }}
+                <i class="bi bi-plus-circle me-1"></i> {{ __('admins.create_button') }}
             </a>
         </div>
 
-        <x-datatable :ajaxUrl="route('admin.admin.data')" :columns="$columns" :renderComponents="$renderComponents"
-            :customActionsView="$customActionsView" />
+        <x-datatable 
+            :ajaxUrl="route('admin.admin.data')" 
+            :columns="$columns" 
+            :renderComponents="$renderComponents"
+            :customActionsView="$customActionsView" 
+        />
     </div>
 @endsection

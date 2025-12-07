@@ -6,10 +6,10 @@
     <x-flash-error />
 
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4>{{ ('leads.title') }}</h4>
+        <h4>{{ __('leads.title') }}</h4>
 
         <a href="{{ route('admin.leads.create') }}" class="btn btn-primary">
-            <i class="bi bi-plus-circle me-1"></i> {{ ('leads.create_button') }}
+            <i class="bi bi-plus-circle me-1"></i> {{ __('leads.create_button') }}
         </a>
     </div>
 

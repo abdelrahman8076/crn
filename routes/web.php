@@ -52,7 +52,7 @@ Route::prefix('admin')
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
         // Admin CRUD
-
+    
         Route::post('logout', [AdminAuthController::class, 'logout'])->name('admin.logout');
 
         //   Route::resource('admin', AdminController::class);
@@ -66,6 +66,11 @@ Route::prefix('admin')
 
         // CLIENT CRUD
         Route::get('/clients/data', [ClientsController::class, 'data'])->name('clients.data');
+
+        Route::get('/clients/uploadForm', [ClientsController::class, 'uploadForm'])->name('clients.uploadForm');
+        Route::post('/clients/uploadForm', [ClientsController::class, 'upload'])->name('clients.upload');
+
+
         Route::get('clients', [ClientsController::class, 'index'])->name('clients.index');
         Route::get('clients/create', [ClientsController::class, 'create'])->name('clients.create');
         Route::post('clients', [ClientsController::class, 'store'])->name('clients.store');

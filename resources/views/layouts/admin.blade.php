@@ -5,7 +5,10 @@
     <meta charset="UTF-8">
     <title>{{ $title ?? 'Webinar' }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    
     <link href="https://cdn.datatables.net/responsive/2.4.1/css/responsive.bootstrap5.min.css" rel="stylesheet">
+        <link href="https://cdn.datatables.net/2.3.5/css/dataTables.dataTables.css" rel="stylesheet">
+
  @if(app()->getLocale() == 'ar')
 <style>
     /* Right sidebar (Arabic) transition */

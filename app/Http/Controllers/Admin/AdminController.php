@@ -21,7 +21,7 @@ class AdminController extends Controller
         $renderComponents = true; // or false based on your condition
         $customActionsView = 'components.default-buttons-table'; // full view path
 
-        return view('admin.admin.index', compact('columns', 'renderComponents', 'customActionsView'));
+        return view('admin.admins.index', compact('columns', 'renderComponents', 'customActionsView'));
     }
         public function data(Request $request)
     {
@@ -61,7 +61,7 @@ class AdminController extends Controller
 
     public function edit(Admin $admin)
     {
-        return view('admin.admin.edit', compact('admin'));
+        return view('admin.admins.edit', compact('admin'));
     }
     public function update(Request $request, Admin $admin)
     {
@@ -79,12 +79,12 @@ class AdminController extends Controller
 
         $admin->update($validated);
 
-        return redirect()->route('admin.admin.index')->with('success', __('admins.updated_success'));
+        return redirect()->route('admin.admins.index')->with('success', __('admins.updated_success'));
     }
 
     public function destroy(Admin $admin)
     {
         $admin->delete();
-        return redirect()->route('admin.admin.index')->with('success', 'Admin deleted successfully.');
+        return redirect()->route('admin.admins.index')->with('success', 'Admin deleted successfully.');
     }
 }

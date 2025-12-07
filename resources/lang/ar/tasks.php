@@ -1,4 +1,4 @@
-<?
+<?php
 return [
     'title'         => 'المهام',
     'create_title'  => 'إضافة مهمة',

@@ -1,4 +1,4 @@
-<?
+<?php
 return [
     'title'         => 'الملاحظات',
     'create_title'  => 'إضافة ملاحظة',

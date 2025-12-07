@@ -1,4 +1,5 @@
-<? return [
+<?php
+return [
     'title' => 'Users',
     'create_title' => 'Create User',
     'edit_title' => 'Edit User',

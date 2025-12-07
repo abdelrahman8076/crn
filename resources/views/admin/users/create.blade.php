@@ -6,9 +6,9 @@
     <x-flash-error />
 
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4>{{ ('users.create_title') }}</h4>
+        <h4>{{ __('users.create_title') }}</h4>
         <a href="{{ route('admin.users.index') }}" class="btn btn-secondary">
-            <i class="bi bi-arrow-left me-1"></i> {{ ('users.back') }}
+            <i class="bi bi-arrow-left me-1"></i> {{ __('users.back') }}
         </a>
     </div>
 
@@ -17,7 +17,7 @@
 
         {{-- Name --}}
         <div class="mb-3">
-            <label for="name" class="form-label">{{ ('users.name') }} *</label>
+            <label for="name" class="form-label">{{ __('users.name') }} *</label>
             <input type="text" name="name" id="name"
                    class="form-control @error('name') is-invalid @enderror"
                    value="{{ old('name') }}" required>
@@ -28,7 +28,7 @@
 
         {{-- Email --}}
         <div class="mb-3">
-            <label for="email" class="form-label">{{ ('users.email') }} *</label>
+            <label for="email" class="form-label">{{ __('users.email') }} *</label>
             <input type="email" name="email" id="email"
                    class="form-control @error('email') is-invalid @enderror"
                    value="{{ old('email') }}" required>
@@ -39,7 +39,7 @@
 
         {{-- Password --}}
         <div class="mb-3">
-            <label for="password" class="form-label">{{ ('users.password') }} *</label>
+            <label for="password" class="form-label">{{ __('users.password') }} *</label>
             <input type="password" name="password" id="password"
                    class="form-control @error('password') is-invalid @enderror" required>
             @error('password')
@@ -49,9 +49,9 @@
 
         {{-- Role --}}
         <div class="mb-3">
-            <label for="role_id" class="form-label">{{ ('users.role') }} *</label>
+            <label for="role_id" class="form-label">{{ __('users.role') }} *</label>
             <select name="role_id" id="role_id" class="form-select @error('role_id') is-invalid @enderror" required>
-                <option value="">{{ ('users.select_role') }}</option>
+                <option value="">{{ __('users.select_role') }}</option>
                 @foreach($roles as $role)
                     <option value="{{ $role->id }}" {{ old('role_id') == $role->id ? 'selected' : '' }}>
                         {{ $role->name }}
@@ -65,9 +65,9 @@
 
         {{-- Manager --}}
         <div class="mb-3">
-            <label for="manager_id" class="form-label">{{ ('users.manager') }}</label>
+            <label for="manager_id" class="form-label">{{ __('users.manager') }}</label>
             <select name="manager_id" id="manager_id" class="form-select @error('manager_id') is-invalid @enderror">
-                <option value="">{{ ('users.select_manager') }}</option>
+                <option value="">{{ __('users.select_manager') }}</option>
                 @foreach($users as $manager)
                     <option value="{{ $manager->id }}" {{ old('manager_id') == $manager->id ? 'selected' : '' }}>
                         {{ $manager->name }}
@@ -80,7 +80,7 @@
         </div>
 
         <button type="submit" class="btn btn-primary">
-            <i class="bi bi-check-circle me-1"></i> {{ ('users.save') }}
+            <i class="bi bi-check-circle me-1"></i> {{ __('users.save') }}
         </button>
     </form>
 </div>

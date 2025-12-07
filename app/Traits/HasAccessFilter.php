@@ -14,19 +14,23 @@ trait HasAccessFilter
      * @param  string  $userColumn  Column that stores assigned user ID, default 'assigned_to'
      * @return Builder
      */
+
+
     public function filterAccess(Builder $query, string $userColumn = 'assigned_to'): Builder
     {
-        $user = Auth::user();
+        // Get current user from either admin or web guard
+        $admin = Auth::guard('admin')->user();
+        $user = $admin ?? Auth::guard('web')->user();
 
-        // If user is admin in 'admins' table -> full access
-        if ($user?->guard === 'admin' || \App\Models\Admin::where('user_id', $user->id)->exists()) {
+        // Full access for Admin guard or admin in admins table
+        if ($admin ) {
             return $query;
         }
 
-        // For normal users: Sales and Managers
+        // Base allowed list
         $allowedUserIds = [$user->id];
 
-        // If manager, include team members
+        // Manager → include team members
         if ($user->role?->name === 'Manager' && method_exists($user, 'team')) {
             $teamIds = $user->team()->pluck('id')->toArray();
             $allowedUserIds = array_merge($allowedUserIds, $teamIds);
@@ -34,31 +38,35 @@ trait HasAccessFilter
 
         return $query->whereIn($userColumn, $allowedUserIds);
     }
-        public function abortIfNoAccess()
-    {
-        $user = Auth::user();
 
-        // If logged in as Admin guard → full access
-        if (Auth::guard('admin')->check()) {
+    public function abortIfNoAccess()
+    {
+        $admin = Auth::guard('admin')->user();
+        $user = $admin ?? Auth::guard('web')->user();
+
+        // Admin guard → allowed
+        if ($admin) {
             return;
         }
 
-        // If user table login → check role
+        // Web users with valid roles → allowed
         if ($user && in_array($user->role?->name, ['Manager', 'Sales', 'Admin'])) {
             return;
         }
 
         abort(403, 'Unauthorized access.');
     }
-        protected function canAccess($model, string $ownerColumn = 'assigned_to'): bool
+
+    protected function canAccess($model, string $ownerColumn = 'assigned_to'): bool
     {
-        // Admins can access everything
+        // Admin has full access
         if (Auth::guard('admin')->check()) {
             return true;
         }
 
-        // For managers/sales, check access via query builder
+        // Run filtered query to check if record belongs to allowed IDs
         $query = $model::query()->where('id', $model->id);
+
         if (method_exists($this, 'filterAccess')) {
             $query = $this->filterAccess($query, $ownerColumn);
         }

@@ -4,16 +4,18 @@
     'renderComponents' => false,
     'customActionsView' => ''
 ])
+
 <div class="table-responsive mt-5">
-    <table class="table table-bordered" id="datatable">
+    <table class="table table-bordered table-striped nowrap w-100" id="datatable">
         <thead>
             <tr>
                 @foreach ($columns as $col)
                     <th>{{ ucwords(str_replace(['.', '_'], ' ', $col)) }}</th>
                 @endforeach
-                   @if ($renderComponents && !empty($customActionsView))
-                <th>Actions</th>
-            @endif
+
+                @if ($renderComponents && !empty($customActionsView))
+                    <th>Actions</th>
+                @endif
             </tr>
         </thead>
     </table>
@@ -21,11 +23,20 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    $('#datatable').DataTable({
+    new DataTable('#datatable', {
         processing: true,
         serverSide: true,
-        responsive: true,
         ajax: '{{ $ajaxUrl }}',
+
+        // ⭐ Modern DataTables V2 options
+        responsive: true,
+
+        rowReorder: {
+            selector: 'td:nth-child(2)' // same as your example
+        },
+
+        scrollX: true,
+
         columns: [
             @foreach ($columns as $col)
                 { data: '{{ $col }}', name: '{{ $col }}' },
@@ -38,4 +49,3 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 </script>
-
