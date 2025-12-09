@@ -50,6 +50,17 @@
             <small class="text-muted">{{ __('users.password_hint') }}</small>
         </div>
 
+        {{-- Password Confirmation (optional) --}}
+        <div class="mb-3">
+            <label for="password_confirmation" class="form-label">{{ __('users.password_confirmation') }}</label>
+            <input type="password" name="password_confirmation" id="password_confirmation"
+                   class="form-control @error('password_confirmation') is-invalid @enderror"
+                   placeholder="{{ __('users.leave_blank') }}">
+            @error('password_confirmation')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
+
         {{-- Role --}}
         <div class="mb-3">
             <label for="role_id" class="form-label">{{ __('users.role') }} *</label>

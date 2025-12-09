@@ -10,134 +10,167 @@ use App\Services\ExcelImportService;
 use App\Services\DataTables\BaseDataTable;
 use App\Traits\HasAccessFilter;
 
-
-
 class ClientsController extends Controller
 {
-    // LIST
     use HasAccessFilter;
 
+    /**
+     * LIST PAGE
+     */
     public function index()
     {
         $columns = ['id', 'name', 'phone', 'email', 'company', 'address'];
-        $renderComponents = true; // or false based on your condition
-        $customActionsView = 'components.default-buttons-table'; // full view path
+        $renderComponents = true;
+        $customActionsView = 'components.default-buttons-table';
 
         return view('admin.clients.index', compact('columns', 'renderComponents', 'customActionsView'));
     }
+
+    /**
+     * DATATABLE AJAX
+     */
     public function data(Request $request)
     {
-        $query = Client::with('assignedUser');
-                   $query = $this->filterAccess($query, 'assigned_to');
-
-
+        $query = Client::with(['assignedSale', 'assignedManager']);
+$query = $this->filterAccess($query, 'assigned_to_sale'); // for sales
+$query = $this->filterAccess($query, 'assigned_to_manager'); // for managers
         $columns = ['id', 'name', 'phone', 'email', 'company', 'address'];
 
-        $service = new BaseDataTable($query, $columns, true, 'components.default-buttons-table');
-        // Optional: send extra props to the view (e.g. routeName)
+        $service = new BaseDataTable(
+            $query,
+            $columns,
+            true,
+            'components.default-buttons-table'
+        );
+
         $service->setActionProps([
             'routeName' => 'admin.clients',
         ]);
+
         return $service->make($request);
     }
 
-    // ADD FORM
+    /**
+     * CREATE FORM
+     */
     public function create()
     {
-        $users = User::all();
-        return view('admin.clients.create', compact('users'));
+       $users    = User::with('role')->get();
+$sales    = User::sales()->get();
+$managers = User::managers()->get();
+
+
+        return view('admin.clients.create', compact('users', 'managers','sales'));
     }
 
-    // ADD STORE
+    /**
+     * STORE NEW CLIENT
+     */
     public function store(Request $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'nullable|email',
-            'phone' => 'nullable|string|max:30',
-            'assigned_to' => 'nullable|exists:users,id',
+        $data = $request->validate([
+            'name'                => 'required|string|max:255',
+            'company'             => 'nullable|string|max:255',
+            'address'             => 'nullable|string|max:500',
+            'email'               => 'nullable|email',
+            'phone'               => 'nullable|string|max:30',
+            'assigned_to_user'    => 'nullable|exists:users,id',
+            'assigned_to_manager' => 'nullable|exists:users,id',
         ]);
 
-        Client::create($request->all());
+        Client::create($data);
 
-        return redirect()->route('admin.clients.index')
+        return redirect()
+            ->route('admin.clients.index')
             ->with('success', __('Client created successfully.'));
     }
 
-    // EDIT FORM
+    /**
+     * EDIT FORM
+     */
     public function edit($id)
     {
-        $client = Client::findOrFail($id);
-        $users = User::all();
-        return view('admin.clients.edit', compact('client', 'users'));
+        $client   = Client::findOrFail($id);
+       $users    = User::with('role')->get();
+$sales    = User::sales()->get();
+$managers = User::managers()->get();
+
+
+        return view('admin.clients.edit', compact('client','users', 'managers','sales'));
     }
 
-    // UPDATE
+    /**
+     * UPDATE CLIENT
+     */
     public function update(Request $request, $id)
     {
         $client = Client::findOrFail($id);
 
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'nullable|email',
-            'phone' => 'nullable|string|max:30',
-            'assigned_to' => 'nullable|exists:users,id',
+        $data = $request->validate([
+            'name'                => 'required|string|max:255',
+            'company'             => 'nullable|string|max:255',
+            'address'             => 'nullable|string|max:500',
+            'email'               => 'nullable|email',
+            'phone'               => 'nullable|string|max:30',
+            'assigned_to_user'    => 'nullable|exists:users,id',
+            'assigned_to_manager' => 'nullable|exists:users,id',
         ]);
 
-        $client->update($request->all());
+        $client->update($data);
 
-        return redirect()->route('admin.clients.index')
+        return redirect()
+            ->route('admin.clients.index')
             ->with('success', __('Client updated successfully.'));
     }
 
-    // DELETE
+    /**
+     * DELETE CLIENT
+     */
     public function destroy($id)
     {
         Client::findOrFail($id)->delete();
 
-        return redirect()->route('admin.clients.index')
+        return redirect()
+            ->route('admin.clients.index')
             ->with('success', __('Client deleted successfully.'));
     }
 
-    // UPLOAD EXCEL PAGE
+    /**
+     * UPLOAD PAGE
+     */
     public function uploadForm()
     {
         return view('admin.clients.upload');
     }
 
-
+    /**
+     * PROCESS EXCEL
+     */
     public function upload(Request $request)
     {
-        // Validate the uploaded file
         $request->validate([
             'file' => 'required|mimes:xlsx,csv,xls',
         ]);
 
-        // Initialize the generic Excel import service for Client model
         $importService = new ExcelImportService(new Client());
-
-        // Specify required columns for validation (name and phone)
         $result = $importService->import($request->file('file'), ['name', 'phone']);
 
         $importedCount = $result['imported'] ?? 0;
         $errors = $result['errors'] ?? [];
 
-        // Prepare flash messages
-        $flashData = [];
+        $flash = [];
 
-        if ($importedCount > 0) {
-            $flashData['success'] = __("Imported {$importedCount} clients successfully.");
+        if ($importedCount) {
+            $flash['success'] = __("Imported {$importedCount} clients successfully.");
         }
 
-        if (!empty($errors)) {
-            $flashData['error'] = __('Some rows were skipped due to missing required fields.');
-            $flashData['error_rows'] = $errors; // pass skipped rows to the view
+        if ($errors) {
+            $flash['error'] = __('Some rows were skipped due to missing required fields.');
+            $flash['error_rows'] = $errors;
         }
 
-        // Redirect back to the clients index with messages
         return redirect()
             ->route('admin.clients.index')
-            ->with($flashData);
+            ->with($flash);
     }
-
 }

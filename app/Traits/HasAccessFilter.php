@@ -16,28 +16,34 @@ trait HasAccessFilter
      */
 
 
-    public function filterAccess(Builder $query, string $userColumn = 'assigned_to'): Builder
-    {
-        // Get current user from either admin or web guard
-        $admin = Auth::guard('admin')->user();
-        $user = $admin ?? Auth::guard('web')->user();
+public function filterAccess(Builder $query): Builder
+{
+    // Get current user from either guard
+    $admin = Auth::guard('admin')->user();
+    $user = $admin ?? Auth::guard('web')->user();
 
-        // Full access for Admin guard or admin in admins table
-        if ($admin ) {
-            return $query;
-        }
-
-        // Base allowed list
-        $allowedUserIds = [$user->id];
-
-        // Manager → include team members
-        if ($user->role?->name === 'Manager' && method_exists($user, 'team')) {
-            $teamIds = $user->team()->pluck('id')->toArray();
-            $allowedUserIds = array_merge($allowedUserIds, $teamIds);
-        }
-
-        return $query->whereIn($userColumn, $allowedUserIds);
+    // Admin → full access
+    if ($admin) {
+        return $query;
     }
+
+    if (!$user) {
+        // No user → return empty query
+        return $query->whereRaw('0 = 1');
+    }
+
+    // Determine column to filter by
+    if ($user->role?->name === 'Manager') {
+        $userColumn = 'assigned_to_manager';
+    } elseif ($user->role?->name === 'Sales') {
+        $userColumn = 'assigned_to_user';
+    } else {
+        // Other roles → no access
+        return $query->whereRaw('0 = 1');
+    }
+
+    return $query->where($userColumn, $user->id);
+}
 
     public function abortIfNoAccess()
     {

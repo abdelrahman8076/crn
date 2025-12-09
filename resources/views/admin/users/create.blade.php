@@ -47,6 +47,16 @@
             @enderror
         </div>
 
+        {{-- Password Confirmation --}}
+        <div class="mb-3">
+            <label for="password_confirmation" class="form-label">{{ __('users.password_confirmation') }} *</label>
+            <input type="password" name="password_confirmation" id="password_confirmation"
+                   class="form-control @error('password_confirmation') is-invalid @enderror" required>
+            @error('password_confirmation')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
+
         {{-- Role --}}
         <div class="mb-3">
             <label for="role_id" class="form-label">{{ __('users.role') }} *</label>

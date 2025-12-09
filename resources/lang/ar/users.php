@@ -18,4 +18,6 @@ return [
     'select_manager' => 'اختر المدير',
     'save' => 'حفظ',
     'back' => 'عودة',
+            'password_confirmation' => 'تأكيد كلمة المرور',
+
 ];

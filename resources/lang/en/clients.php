@@ -30,6 +30,17 @@ return [
     'address'            => 'Address',
     'company'            => 'Company',
     'notes'              => 'Notes',
+   
+
+    'assigned_user' => 'Assigned User',
+    'assigned_manager' => 'Assigned Manager',
+    'select_manager' => 'Select Manager',
+        'select_sale' => 'Select Sales', // <-- add this
+            'assigned_sale' => 'Assign to Sales', // <-- new key
+
+
+
+  
 
     // Other actions
 

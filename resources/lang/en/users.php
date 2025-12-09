@@ -19,6 +19,7 @@ return [
     'manager' => 'Manager',
     'select_manager' => 'Select Manager',
     'save' => 'Save',
-    'back' => 'Back',
+    'back' => 'Back',        'password_confirmation' => 'Confirm Password',
+
 
 ];

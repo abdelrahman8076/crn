@@ -29,6 +29,13 @@ return [
     'address'            => 'العنوان',
     'company'            => 'الشركة',
     'notes'              => 'ملاحظات',
+        'assigned_user' => 'الموظف المسؤول',
+    'assigned_manager' => 'المدير المسؤول',
+    'select_manager' => 'اختر مديراً',
+        'select_sale' => 'اختر موظف المبيعات', // <-- add this
+            'assigned_sale' => 'تعيين لموظف المبيعات', // <-- new key
+
+
 
     // Other actions
 ];
