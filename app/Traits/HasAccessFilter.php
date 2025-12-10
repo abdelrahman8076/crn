@@ -79,5 +79,14 @@ public function filterAccess(Builder $query): Builder
 
         return $query->exists();
     }
+    private function getAccessibleClients($model = \App\Models\Client::class)
+{
+    // Start query on given model
+    $query = $model::query();
+
+    // Apply correct role-based access
+    return $this->filterAccess($query)->get();
+}
+
 
 }

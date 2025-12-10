@@ -10,39 +10,53 @@
     <form action="{{ route('admin.leads.store') }}" method="POST" class="mt-3">
         @csrf
 
+        {{-- Title --}}
         <div class="mb-3">
-            <label for="name" class="form-label">{{ __('leads.name') }} *</label>
-            <input type="text" class="form-control" id="name" name="name" 
-                   value="{{ old('name') }}" required>
+            <label for="title" class="form-label">{{ __('leads.name') }} *</label>
+            <input type="text" class="form-control" id="title" name="title" 
+                   value="{{ old('title') }}" required>
+            @error('title') <div class="invalid-feedback">{{ $message }}</div> @enderror
         </div>
 
+        {{-- Source --}}
         <div class="mb-3">
-            <label for="email" class="form-label">{{ __('leads.email') }}</label>
-            <input type="email" class="form-control" id="email" name="email"
-                   value="{{ old('email') }}">
+            <label for="source" class="form-label">{{ __('leads.source') }}</label>
+            <input type="text" class="form-control" id="source" name="source"
+                   value="{{ old('source') }}">
+            @error('source') <div class="invalid-feedback">{{ $message }}</div> @enderror
         </div>
 
+        {{-- Status --}}
         <div class="mb-3">
-            <label for="phone" class="form-label">{{ __('leads.phone') }}</label>
-            <input type="text" class="form-control" id="phone" name="phone"
-                   value="{{ old('phone') }}">
+            <label for="status" class="form-label">{{ __('leads.status') }}</label>
+            <select class="form-select" id="status" name="status">
+                <option value="">{{ __('leads.select_status') }}</option>
+                <option value="new" {{ old('status') === 'new' ? 'selected' : '' }}>New</option>
+                <option value="contacted" {{ old('status') === 'contacted' ? 'selected' : '' }}>Contacted</option>
+                <option value="qualified" {{ old('status') === 'qualified' ? 'selected' : '' }}>Qualified</option>
+                <option value="lost" {{ old('status') === 'lost' ? 'selected' : '' }}>Lost</option>
+            </select>
+            @error('status') <div class="invalid-feedback">{{ $message }}</div> @enderror
         </div>
 
-        <div class="mb-3">
-            <label for="company" class="form-label">{{ __('leads.company') }}</label>
-            <input type="text" class="form-control" id="company" name="company"
-                   value="{{ old('company') }}">
-        </div>
+     
 
+
+        {{-- Assign to Client --}}
         <div class="mb-3">
-            <label for="assigned_to" class="form-label">{{ __('leads.assigned_to') }}</label>
-            <select class="form-select" id="assigned_to" name="assigned_to">
-                <option value="">{{ __('Select User') }}</option>
-                @foreach($users as $user)
-                    <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->role->name ?? '' }})</option>
+            <label for="client_id" class="form-label">{{ __('leads.assign_client') }}</label>
+            <select class="form-select" id="client_id" name="client_id">
+                <option value="">{{ __('leads.select_client') }}</option>
+                @foreach($clients as $client)
+                    <option value="{{ $client->id }}" {{ old('client_id') == $client->id ? 'selected' : '' }}>
+                        {{ $client->name }} ({{ $client->company ?? '—' }})
+                    </option>
                 @endforeach
             </select>
+            @error('client_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
         </div>
+
+     
 
         <div class="d-flex gap-2 flex-wrap">
             <button type="submit" class="btn btn-primary">{{ __('leads.create') }}</button>

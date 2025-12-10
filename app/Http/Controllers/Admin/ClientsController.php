@@ -32,8 +32,8 @@ class ClientsController extends Controller
     public function data(Request $request)
     {
         $query = Client::with(['assignedSale', 'assignedManager']);
-$query = $this->filterAccess($query, 'assigned_to_sale'); // for sales
-$query = $this->filterAccess($query, 'assigned_to_manager'); // for managers
+        $query = $this->filterAccess($query); // for sales
+        $query = $this->filterAccess($query); // for managers
         $columns = ['id', 'name', 'phone', 'email', 'company', 'address'];
 
         $service = new BaseDataTable(
@@ -55,12 +55,12 @@ $query = $this->filterAccess($query, 'assigned_to_manager'); // for managers
      */
     public function create()
     {
-       $users    = User::with('role')->get();
-$sales    = User::sales()->get();
-$managers = User::managers()->get();
+        $users = User::with('role')->get();
+        $sales = User::sales()->get();
+        $managers = User::managers()->get();
 
 
-        return view('admin.clients.create', compact('users', 'managers','sales'));
+        return view('admin.clients.create', compact('users', 'managers', 'sales'));
     }
 
     /**
@@ -69,12 +69,12 @@ $managers = User::managers()->get();
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name'                => 'required|string|max:255',
-            'company'             => 'nullable|string|max:255',
-            'address'             => 'nullable|string|max:500',
-            'email'               => 'nullable|email',
-            'phone'               => 'nullable|string|max:30',
-            'assigned_to_user'    => 'nullable|exists:users,id',
+            'name' => 'required|string|max:255',
+            'company' => 'nullable|string|max:255',
+            'address' => 'nullable|string|max:500',
+            'email' => 'nullable|email',
+            'phone' => 'nullable|string|max:30',
+            'assigned_to_user' => 'nullable|exists:users,id',
             'assigned_to_manager' => 'nullable|exists:users,id',
         ]);
 
@@ -90,13 +90,13 @@ $managers = User::managers()->get();
      */
     public function edit($id)
     {
-        $client   = Client::findOrFail($id);
-       $users    = User::with('role')->get();
-$sales    = User::sales()->get();
-$managers = User::managers()->get();
+        $client = Client::findOrFail($id);
+        $users = User::with('role')->get();
+        $sales = User::sales()->get();
+        $managers = User::managers()->get();
 
 
-        return view('admin.clients.edit', compact('client','users', 'managers','sales'));
+        return view('admin.clients.edit', compact('client', 'users', 'managers', 'sales'));
     }
 
     /**
@@ -107,12 +107,12 @@ $managers = User::managers()->get();
         $client = Client::findOrFail($id);
 
         $data = $request->validate([
-            'name'                => 'required|string|max:255',
-            'company'             => 'nullable|string|max:255',
-            'address'             => 'nullable|string|max:500',
-            'email'               => 'nullable|email',
-            'phone'               => 'nullable|string|max:30',
-            'assigned_to_user'    => 'nullable|exists:users,id',
+            'name' => 'required|string|max:255',
+            'company' => 'nullable|string|max:255',
+            'address' => 'nullable|string|max:500',
+            'email' => 'nullable|email',
+            'phone' => 'nullable|string|max:30',
+            'assigned_to_user' => 'nullable|exists:users,id',
             'assigned_to_manager' => 'nullable|exists:users,id',
         ]);
 

@@ -13,4 +13,11 @@ return [
     'update'        => 'Update',
     'create'        => 'Create',
     'cancel'        => 'Cancel',
+        'assign_client'     => 'Assign to Client',
+    'select_client'     => 'Select Client',
+    'source'        => 'Source',
+'status'        => 'Status',
+'select_status' => 'Select Status',
+'select_user'   => 'Select User',
+
 ];
