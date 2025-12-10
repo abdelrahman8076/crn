@@ -12,49 +12,47 @@ use App\Models\Admin;
 
 class DashboardController extends Controller
 {
-    public function index()
-    {
-        $user = $this->getLoggedUser();
+  public function index()
+{
+    $user = $this->getLoggedUser();
 
-        if (!$user) {
-            return redirect('/login')->withErrors('Session expired, please login again.');
+    if (!$user) {
+        return redirect('/login')->withErrors('Session expired, please login again.');
+    }
+
+    $isSuperAdmin = Admin::where('email', $user->email)->exists();
+
+    // Base client query
+    $clientQuery = Client::query();
+
+    if (!$isSuperAdmin) {
+        switch ($user->role?->name) {
+            case 'Manager':
+            //    $teamIds = $user->team?->pluck('id')->toArray() ?? [];
+                $teamIds[] = $user->id;
+                $clientQuery->whereIn('assigned_to_manager', $teamIds);
+                break;
+
+            case 'Sales':
+                $clientQuery->where('assigned_to_sale', $user->id);
+                break;
+
+            default:
+                $clientQuery->whereRaw('0 = 1');
         }
+    }
 
-        // If logged user exists in admins table → full access
-        $isSuperAdmin = Admin::where('email', $user->email)->exists();
+    // Leads & Deals based on filtered clients
+    $leadQuery = $isSuperAdmin 
+        ? Lead::query() 
+        : Lead::whereIn('client_id', $clientQuery->pluck('id')->toArray());
 
-        // Base queries
-        $clientQuery = Client::query();
-        $leadQuery   = Lead::query();
-        $dealQuery   = Deal::query()->whereHas('lead', fn($q) => $q);
+    $dealQuery = $isSuperAdmin 
+        ? Deal::query() 
+        : Deal::whereIn('lead_id', $leadQuery->pluck('id')->toArray());
 
-        if (!$isSuperAdmin) {
-            // Role-based filtering
-            switch ($user->role?->name) {
+     //   dd($leadQuery , $dealQuery);
 
-                case 'Manager':
-                    $teamIds = $user->team->pluck('id')->toArray();
-                    $teamIds[] = $user->id;
-
-                    $clientQuery->whereIn('assigned_to', $teamIds);
-                    $leadQuery->whereIn('assigned_to', $teamIds);
-                    $dealQuery->whereHas('lead', fn($q) => $q->whereIn('assigned_to', $teamIds));
-                    break;
-
-                case 'Sales':
-                    $clientQuery->where('assigned_to', $user->id);
-                    $leadQuery->where('assigned_to', $user->id);
-                    $dealQuery->whereHas('lead', fn($q) => $q->where('assigned_to', $user->id));
-                    break;
-
-                default:
-                    $clientQuery->whereRaw('0 = 1');
-                    $leadQuery->whereRaw('0 = 1');
-                    $dealQuery->whereRaw('0 = 1');
-            }
-        }
-
-    // 🔥 FIX: always an array of integers
     $data = [
         'totalUsers'   => (int) User::count(),
         'totalClients' => (int) $clientQuery->count(),
@@ -63,7 +61,9 @@ class DashboardController extends Controller
     ];
 
     return view('admin.dashboard', compact('data'));
-    }
+}
+
+
 
     private function getLoggedUser()
     {

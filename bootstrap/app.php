@@ -14,6 +14,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin_or_user' => \App\Http\Middleware\AllowAdminOrUser::class,
             'set_locale' => \App\Http\Middleware\SetLocale::class,
+            'admin_only' => \App\Http\Middleware\AdminOnly::class,
+
 
         ]);
         $middleware->appendToGroup('web', [

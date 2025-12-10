@@ -9,6 +9,8 @@ use Illuminate\Http\Request;
 use App\Services\ExcelImportService;
 use App\Services\DataTables\BaseDataTable;
 use App\Traits\HasAccessFilter;
+use Illuminate\Support\Facades\Auth;
+
 
 class ClientsController extends Controller
 {
@@ -33,7 +35,6 @@ class ClientsController extends Controller
     {
         $query = Client::with(['assignedSale', 'assignedManager']);
         $query = $this->filterAccess($query); // for sales
-        $query = $this->filterAccess($query); // for managers
         $columns = ['id', 'name', 'phone', 'email', 'company', 'address'];
 
         $service = new BaseDataTable(
@@ -66,24 +67,31 @@ class ClientsController extends Controller
     /**
      * STORE NEW CLIENT
      */
-    public function store(Request $request)
-    {
-        $data = $request->validate([
-            'name' => 'required|string|max:255',
-            'company' => 'nullable|string|max:255',
-            'address' => 'nullable|string|max:500',
-            'email' => 'nullable|email',
-            'phone' => 'nullable|string|max:30',
-            'assigned_to_user' => 'nullable|exists:users,id',
-            'assigned_to_manager' => 'nullable|exists:users,id',
-        ]);
+  public function store(Request $request)
+{
+    $data = $request->validate([
+        'name' => 'required|string|max:255',
+        'company' => 'nullable|string|max:255',
+        'address' => 'nullable|string|max:500',
+        'email' => 'nullable|email',
+        'phone' => 'nullable|string|max:30',
+        'assigned_to_user' => 'nullable|exists:users,id',
+        'assigned_to_manager' => 'nullable|exists:users,id',
+    ]);
 
-        Client::create($data);
-
-        return redirect()
-            ->route('admin.clients.index')
-            ->with('success', __('Client created successfully.'));
+    // If logged in via web guard and role is Manager, auto-assign
+    $webUser = Auth::guard('web')->user();
+    if ($webUser && $webUser->role?->name === 'Manager') {
+        $data['assigned_to_manager'] = $webUser->id;
     }
+
+    Client::create($data);
+
+    return redirect()
+        ->route('admin.clients.index')
+        ->with('success', __('Client created successfully.'));
+}
+
 
     /**
      * EDIT FORM

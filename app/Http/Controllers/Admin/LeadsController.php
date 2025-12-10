@@ -27,10 +27,10 @@ class LeadsController extends Controller
     // Datatable / AJAX data
     public function data(Request $request)
     {
-        $query = Lead::with(['assignedUser', 'client']);
+        $query = Lead::with(['client']);
 
         // Apply generic access filter
-        $query = $this->filterAccess($query);
+        $query = $this->filterAccess($query, 'lead');
 
         $columns = ['id', 'title', 'source', 'status', 'client.name'];
         $service = new BaseDataTable($query, $columns, true, 'components.default-buttons-table');
@@ -52,14 +52,14 @@ class LeadsController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'title'        => 'required|string|max:255',
-            'source'       => 'nullable|string|max:255',
-            'status'       => 'nullable|string|max:50',
-            'client_id'    => 'required|exists:clients,id',
-            'assigned_to'  => 'nullable|exists:users,id',
+            'title' => 'required|string|max:255',
+            'source' => 'nullable|string|max:255',
+            'status' => 'nullable|string|max:50',
+            'client_id' => 'required|exists:clients,id',
+            'assigned_to' => 'nullable|exists:users,id',
         ]);
 
-        Lead::create($request->only(['title','source','status','client_id','assigned_to']));
+        Lead::create($request->only(['title', 'source', 'status', 'client_id', 'assigned_to']));
 
         return redirect()->route('admin.leads.index')
             ->with('success', __('Lead created successfully.'));
@@ -81,14 +81,14 @@ class LeadsController extends Controller
         $lead = Lead::findOrFail($id);
 
         $request->validate([
-            'title'        => 'required|string|max:255',
-            'source'       => 'nullable|string|max:255',
-            'status'       => 'nullable|string|max:50',
-            'client_id'    => 'required|exists:clients,id',
-            'assigned_to'  => 'nullable|exists:users,id',
+            'title' => 'required|string|max:255',
+            'source' => 'nullable|string|max:255',
+            'status' => 'nullable|string|max:50',
+            'client_id' => 'required|exists:clients,id',
+            'assigned_to' => 'nullable|exists:users,id',
         ]);
 
-        $lead->update($request->only(['title','source','status','client_id','assigned_to']));
+        $lead->update($request->only(['title', 'source', 'status', 'client_id', 'assigned_to']));
 
         return redirect()->route('admin.leads.index')
             ->with('success', __('Lead updated successfully.'));
@@ -104,5 +104,5 @@ class LeadsController extends Controller
     }
 
     // Helper to get accessible clients
-  
+
 }

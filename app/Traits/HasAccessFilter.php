@@ -16,34 +16,52 @@ trait HasAccessFilter
      */
 
 
-public function filterAccess(Builder $query): Builder
-{
-    // Get current user from either guard
-    $admin = Auth::guard('admin')->user();
-    $user = $admin ?? Auth::guard('web')->user();
+    public function filterAccess(Builder $query, string $modelType = 'client'): Builder
+    {
+        $admin = Auth::guard('admin')->user();
+        $user = $admin ?? Auth::guard('web')->user();
 
-    // Admin → full access
-    if ($admin) {
-        return $query;
+        if ($admin) {
+            return $query; // Admin sees all
+        }
+
+        if (!$user) {
+            return $query->whereRaw('0 = 1'); // No access
+        }
+
+        // Determine allowed client IDs
+        $allowedClientIds = [];
+        if ($user->role?->name === 'Manager') {
+            $allowedClientIds = [$user->id];
+            if (property_exists($user, 'team')) {
+                $allowedClientIds = array_merge($allowedClientIds, $user->team?->pluck('id')->toArray() ?? []);
+            }
+        } elseif ($user->role?->name === 'Sales') {
+            $allowedClientIds = [$user->id];
+        } else {
+            return $query->whereRaw('0 = 1');
+        }
+
+        // Apply hierarchical filtering
+        switch ($modelType) {
+            case 'client':
+                if ($user->role?->name === 'Manager') {
+                    return $query->whereIn('assigned_to_manager', $allowedClientIds);
+                }
+                return $query->where('assigned_to_sale', $user->id);
+
+            case 'lead':
+                return $query->whereHas('client', fn($q) => $this->filterAccess($q, 'client'));
+
+            case 'deal':
+                return $query->whereHas('lead.client', fn($q) => $this->filterAccess($q, 'client'));
+
+            default:
+                return $query->whereRaw('0 = 1');
+        }
     }
 
-    if (!$user) {
-        // No user → return empty query
-        return $query->whereRaw('0 = 1');
-    }
 
-    // Determine column to filter by
-    if ($user->role?->name === 'Manager') {
-        $userColumn = 'assigned_to_manager';
-    } elseif ($user->role?->name === 'Sales') {
-        $userColumn = 'assigned_to_user';
-    } else {
-        // Other roles → no access
-        return $query->whereRaw('0 = 1');
-    }
-
-    return $query->where($userColumn, $user->id);
-}
 
     public function abortIfNoAccess()
     {
@@ -80,13 +98,13 @@ public function filterAccess(Builder $query): Builder
         return $query->exists();
     }
     private function getAccessibleClients($model = \App\Models\Client::class)
-{
-    // Start query on given model
-    $query = $model::query();
+    {
+        // Start query on given model
+        $query = $model::query();
 
-    // Apply correct role-based access
-    return $this->filterAccess($query)->get();
-}
+        // Apply correct role-based access
+        return $this->filterAccess($query)->get();
+    }
 
 
 }

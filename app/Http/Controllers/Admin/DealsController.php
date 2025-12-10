@@ -10,6 +10,8 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use App\Traits\HasAccessFilter;
 use App\Services\DataTables\BaseDataTable;
+use App\Models\Client;
+
 
 
 class DealsController extends Controller
@@ -27,19 +29,23 @@ class DealsController extends Controller
     }
 
     // Datatable / AJAX data
-    public function data(Request $request)
-    {
-        $query = Deal::with(['lead.client']);
-        
-        // Apply generic access filter
-        $query = $this->filterAccess($query);
+ public function data(Request $request)
+{
+    // Start query with relationships
+    $query = Deal::with(['lead.client']);
 
-        $columns = ['id', 'deal_name', 'amount', 'stage', 'lead.client.name'];
-        $service = new BaseDataTable($query, $columns, true, 'components.default-buttons-table');
-        $service->setActionProps(['routeName' => 'admin.deals']);
+    // Apply access filter for Deal hierarchy
+    $query = $this->filterAccess($query, 'deal');
 
-        return $service->make($request);
-    }
+    // Columns for DataTable
+    $columns = ['id', 'deal_name', 'amount', 'stage', 'lead.client.name'];
+
+    // Build DataTable
+    $service = new BaseDataTable($query, $columns, true, 'components.default-buttons-table');
+    $service->setActionProps(['routeName' => 'admin.deals']);
+
+    return $service->make($request);
+}
 
     // Show create form
     public function create()
