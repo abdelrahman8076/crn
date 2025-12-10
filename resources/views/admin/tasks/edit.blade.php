@@ -9,42 +9,65 @@
 
     <form action="{{ route('admin.tasks.update', $task->id) }}" method="POST" class="mt-3">
         @csrf
+        @method('PUT')
 
+        {{-- Title --}}
         <div class="mb-3">
             <label for="title" class="form-label">{{ __('tasks.title_field') }} *</label>
-            <input type="text" class="form-control" id="title" name="title" value="{{ old('title', $task->title) }}" required>
+            <input type="text" class="form-control" id="title" name="title"
+                   value="{{ old('title', $task->title) }}" required>
         </div>
 
+        {{-- Description --}}
         <div class="mb-3">
             <label for="description" class="form-label">{{ __('tasks.description') }} *</label>
-            <textarea class="form-control" id="description" name="description" rows="4" required>{{ old('description', $task->description) }}</textarea>
+            <textarea class="form-control" id="description" name="description" rows="4" required>
+                {{ old('description', $task->description) }}
+            </textarea>
         </div>
 
+        {{-- Assigned To --}}
         <div class="mb-3">
             <label for="assigned_to" class="form-label">{{ __('tasks.assigned_to') }}</label>
             <select class="form-select" id="assigned_to" name="assigned_to">
                 <option value="">{{ __('Select User') }}</option>
                 @foreach($users as $user)
-                    <option value="{{ $user->id }}" {{ ($task->assigned_to == $user->id) ? 'selected' : '' }}>
+                    <option value="{{ $user->id }}"
+                        {{ $task->assigned_to == $user->id ? 'selected' : '' }}>
                         {{ $user->name }} ({{ $user->role->name ?? '' }})
                     </option>
                 @endforeach
             </select>
         </div>
 
+        {{-- Status --}}
         <div class="mb-3">
             <label for="status" class="form-label">{{ __('tasks.status') }}</label>
             <select class="form-select" id="status" name="status" required>
-                <option value="pending" {{ ($task->status == 'pending') ? 'selected' : '' }}>{{ __('tasks.status_pending') }}</option>
-                <option value="in-progress" {{ ($task->status == 'in-progress') ? 'selected' : '' }}>{{ __('tasks.status_in_progress') }}</option>
-                <option value="completed" {{ ($task->status == 'completed') ? 'selected' : '' }}>{{ __('tasks.status_completed') }}</option>
+                <option value="pending" {{ $task->status == 'pending' ? 'selected' : '' }}>
+                    {{ __('tasks.status_pending') }}
+                </option>
+                <option value="in-progress" {{ $task->status == 'in-progress' ? 'selected' : '' }}>
+                    {{ __('tasks.status_in_progress') }}
+                </option>
+                <option value="completed" {{ $task->status == 'completed' ? 'selected' : '' }}>
+                    {{ __('tasks.status_completed') }}
+                </option>
             </select>
+        </div>
+
+        {{-- Due Date --}}
+        <div class="mb-3">
+            <label for="due_date" class="form-label">{{ __('tasks.due_date') }}</label>
+            <input type="date" class="form-control" id="due_date" name="due_date"
+                   value="{{ old('due_date', $task->due_date ? $task->due_date->format('Y-m-d') : '') }}">
         </div>
 
         <div class="d-flex gap-2 flex-wrap">
             <button type="submit" class="btn btn-success">{{ __('tasks.update') }}</button>
             <a href="{{ route('admin.tasks.index') }}" class="btn btn-secondary">{{ __('tasks.cancel') }}</a>
         </div>
+
     </form>
 </div>
 @endsection

@@ -13,5 +13,7 @@ return [
     'create_button' => 'إضافة مهمة',
     'create'        => 'إضافة',
     'update'        => 'تحديث',
+        'due_date' => 'تاريخ الاستحقاق',
+
     'cancel'        => 'إلغاء',
 ];

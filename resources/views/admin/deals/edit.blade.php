@@ -57,7 +57,7 @@
                 <option value="">{{ __('deals.select_lead') }}</option>
                 @foreach($leads as $lead)
                     <option value="{{ $lead->id }}" {{ old('lead_id', $deal->lead_id ?? '') == $lead->id ? 'selected' : '' }}>
-                        {{ $lead->name }}
+                        {{ $lead->title }}
                     </option>
                 @endforeach
             </select>
@@ -67,7 +67,7 @@
         </div>
 
         {{-- Assigned To --}}
-        <div class="mb-3">
+        {{-- <div class="mb-3">
             <label for="assigned_to" class="form-label">{{ __('deals.assigned_to') }}</label>
             <select name="assigned_to" id="assigned_to" class="form-select @error('assigned_to') is-invalid @enderror">
                 <option value="">{{ __('deals.select_user') }}</option>
@@ -80,7 +80,7 @@
             @error('assigned_to')
                 <div class="invalid-feedback">{{ $message }}</div>
             @enderror
-        </div>
+        </div> --}}
 
         <div class="d-flex gap-2 flex-wrap">
             <button type="submit" class="btn btn-primary">{{ isset($deal) ? ('deals.update') : ('deals.save') }}</button>

@@ -9,7 +9,10 @@ class Note extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['content','user_id','related_id','related_type'];
+    protected $fillable = ['content','assigned_to'];
+     protected $casts = [
+    'created_at'=> 'date:Y-m-d',
+];
 
     public function related()
     {
@@ -18,6 +21,6 @@ class Note extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class,'assigned_to');
     }
 }

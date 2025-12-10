@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\Auth;
 use App\Traits\HasAccessFilter;
 use App\Services\DataTables\BaseDataTable;
 
-
 class TasksController extends Controller
 {
     use HasAccessFilter;
@@ -18,9 +17,9 @@ class TasksController extends Controller
     // Display tasks index page
     public function index()
     {
-        $columns = ['id', 'title', 'description', 'assigned_to', 'status', 'created_at'];
-        $renderComponents = true; // or false based on your condition
-        $customActionsView = 'components.default-buttons-table'; // full view path
+        $columns = ['id', 'title', 'description', 'user.name', 'due_date', 'status', 'created_at'];
+        $renderComponents = true;
+        $customActionsView = 'components.default-buttons-table';
 
         return view('admin.tasks.index', compact('columns', 'renderComponents', 'customActionsView'));
     }
@@ -28,12 +27,12 @@ class TasksController extends Controller
     // Datatable AJAX data
     public function data(Request $request)
     {
-        $query = Task::with('assignedUser');
+        $query = Task::with('user');
 
         // Apply role-based filtering (Admin, Manager, Sales)
-        $query = $this->filterAccess($query, 'assigned_to');
+        $query = $this->filterAccess($query);
 
-        $columns = ['id', 'title', 'description', 'assigned_to', 'status', 'created_at'];
+        $columns = ['id', 'title', 'description', 'user.name', 'due_date', 'status', 'created_at'];
         $service = new BaseDataTable($query, $columns, true, 'components.default-buttons-table');
         $service->setActionProps(['routeName' => 'admin.tasks']);
 
@@ -55,6 +54,7 @@ class TasksController extends Controller
             'description' => 'required|string',
             'assigned_to' => 'nullable|exists:users,id',
             'status'      => 'required|string|in:pending,in-progress,completed',
+            'due_date'    => 'nullable|date',
         ]);
 
         Task::create($request->all());
@@ -82,6 +82,7 @@ class TasksController extends Controller
             'description' => 'required|string',
             'assigned_to' => 'nullable|exists:users,id',
             'status'      => 'required|string|in:pending,in-progress,completed',
+            'due_date'    => 'nullable|date',
         ]);
 
         $task->update($request->all());

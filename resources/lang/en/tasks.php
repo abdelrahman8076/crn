@@ -14,4 +14,6 @@ return [
     'create'        => 'Create',
     'update'        => 'Update',
     'cancel'        => 'Cancel',
+        'due_date' => 'Due Date',
+
 ];

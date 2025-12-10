@@ -9,14 +9,20 @@ class Task extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['title','due_date','status','related_id','related_type','assigned_to'];
+    protected $fillable = ['title','due_date','status','assigned_to','description'];
+ protected $casts = [
+    'due_date' => 'date:Y-m-d',
+    'created_at'=> 'date:Y-m-d',
+];
+
+
 
     public function related()
     {
         return $this->morphTo();
     }
 
-    public function assignedTo()
+    public function user()
     {
         return $this->belongsTo(User::class,'assigned_to');
     }

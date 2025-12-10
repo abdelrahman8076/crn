@@ -53,7 +53,7 @@ Route::prefix('admin')
 
         // Admin CRUD
     
-        Route::post('logout', [AdminAuthController::class, 'logout'])->name('admin.logout');
+        Route::get('logout', [AdminAuthController::class, 'logout'])->name('admin.logout');
 
         //   Route::resource('admin', AdminController::class);
         Route::get('/admins/data', [AdminController::class, 'data'])->name('admin.data');

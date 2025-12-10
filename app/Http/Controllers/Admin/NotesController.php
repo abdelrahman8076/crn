@@ -18,7 +18,7 @@ class NotesController extends Controller
     // Display notes index page
      public function index()
     {
-        $columns = ['id', 'title', 'content', 'assigned_to', 'created_at'];
+        $columns = ['id',  'content', 'user.name', 'created_at'];
         $renderComponents = true; // or false based on your condition
         $customActionsView = 'components.default-buttons-table'; // full view path
 
@@ -28,12 +28,12 @@ class NotesController extends Controller
     // Datatable AJAX data
     public function data(Request $request)
     {
-        $query = Note::with('assignedUser');
+        $query = Note::with('user');
 
         // Apply role-based filtering (Admin, Manager, Sales)
-        $query = $this->filterAccess($query, 'assigned_to');
+        $query = $this->filterAccess($query);
 
-        $columns = ['id', 'title', 'content', 'assigned_to', 'created_at'];
+        $columns = ['id',  'content', 'user.name', 'created_at'];
         $service = new BaseDataTable($query, $columns, true, 'components.default-buttons-table');
         $service->setActionProps(['routeName' => 'admin.notes']);
 

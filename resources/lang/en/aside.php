@@ -20,5 +20,7 @@ return [
 
     // Client upload
     'admins_clients_upload'=> 'Upload Clients',
+        'Logout' => 'Logout',
+
 
 ];

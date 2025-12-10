@@ -19,7 +19,7 @@ class DealsController extends Controller
     // List deals page
     public function index()
     {
-        $columns = ['id', 'deal_name', 'amount', 'stage', 'lead_id', 'assigned_to'];
+        $columns = ['id', 'deal_name', 'amount', 'stage', 'lead.client.name'];
         $renderComponents = true; // or false based on your condition
         $customActionsView = 'components.default-buttons-table'; // full view path
 
@@ -29,12 +29,12 @@ class DealsController extends Controller
     // Datatable / AJAX data
     public function data(Request $request)
     {
-        $query = Deal::with(['lead', 'assignedUser']);
+        $query = Deal::with(['lead.client']);
         
         // Apply generic access filter
-        $query = $this->filterAccess($query, 'assigned_to');
+        $query = $this->filterAccess($query);
 
-        $columns = ['id', 'deal_name', 'amount', 'stage', 'lead_id', 'assigned_to'];
+        $columns = ['id', 'deal_name', 'amount', 'stage', 'lead.client.name'];
         $service = new BaseDataTable($query, $columns, true, 'components.default-buttons-table');
         $service->setActionProps(['routeName' => 'admin.deals']);
 
@@ -44,7 +44,7 @@ class DealsController extends Controller
     // Show create form
     public function create()
     {
-        $leads = $this->filterAccess(Lead::query(), 'assigned_to')->get();
+        $leads = $this->filterAccess(Lead::query())->get();
         $users = User::all();
 
         return view('admin.deals.create', compact('leads', 'users'));
@@ -71,7 +71,7 @@ class DealsController extends Controller
     public function edit($id)
     {
         $deal = Deal::findOrFail($id);
-        $leads = $this->filterAccess(Lead::query(), 'assigned_to')->get();
+        $leads = $this->filterAccess(Lead::query())->get();
         $users = User::all();
 
         return view('admin.deals.edit', compact('deal', 'leads', 'users'));

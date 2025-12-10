@@ -78,7 +78,7 @@
                 <!-- Deals -->
                 <li class="sidebar-item">
                     <a class="sidebar-link" href="{{ route('admin.deals.index') }}" aria-expanded="false">
-                        <i class="ti ti-handshake"></i>
+<i class="ti ti-currency-dollar"></i>
                         <span class="hide-menu">{{ __('aside.Deals') }}</span>
                     </a>
                 </li>
@@ -101,12 +101,20 @@
 
                 <!-- Divider -->
                 <li><span class="sidebar-divider lg"></span></li>
+                <li class="sidebar-item mt-3">
+    <a class="sidebar-link" href="{{ route('admin.admin.logout') }}"
+       {{-- onclick="event.preventDefault(); document.getElementById('logout-form').submit();" --}}
+       aria-expanded="false">
+        <i class="ti ti-power"></i>
+        <span class="hide-menu">{{ __('aside.Logout') }}</span>
+    </a>
+</li>
 
                 <!-- Apps Section -->
-                <li class="nav-small-cap">
+                {{-- <li class="nav-small-cap">
                     <iconify-icon icon="solar:menu-dots-linear" class="nav-small-cap-icon fs-4"></iconify-icon>
                     <span class="hide-menu">{{ __('aside.Apps') }}</span>
-                </li>
+                </li> --}}
             </ul>
         </nav>
     </div>
