@@ -17,12 +17,18 @@
 
 <div class="btn-group" role="group">
 
-    {{-- ✏️ Edit Button --}}
+  @if (
+    $editRoute !== 'admin.clients'
+    || auth('admin')->check()
+    || auth('web')->user()?->role?->name !== 'Sales'
+)
     @if ($editRoute && Route::has($editRoute))
         <a href="{{ route($editRoute, $id) }}" class="btn btn-sm btn-outline-primary">
             <i class="bi bi-pencil-square"></i> {{ __('Edit') }}
         </a>
     @endif
+@endif
+
 
     {{-- 🚫 Deactivate Button --}}
     @if ($hasDeactivate && $inactiveRoute && Route::has($inactiveRoute))

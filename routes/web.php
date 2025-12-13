@@ -57,10 +57,7 @@ Route::prefix('admin')
 
 
         Route::middleware('admin_only')->group(function () {
-
             Route::get('logout', [AdminAuthController::class, 'logout'])->name('admin.logout');
-
-            //   Route::resource('admin', AdminController::class);
             Route::get('/admins/data', [AdminController::class, 'data'])->name('admin.data');
             Route::get('admin', [AdminController::class, 'index'])->name('admin.index');
             Route::get('admin/create', [AdminController::class, 'create'])->name('admin.create');
@@ -68,12 +65,6 @@ Route::prefix('admin')
             Route::get('admin/{admin}/edit', [AdminController::class, 'edit'])->name('admin.edit');
             Route::put('admin/{admin}', [AdminController::class, 'update'])->name('admin.update');
             Route::delete('admin/{admin}', [AdminController::class, 'destroy'])->name('admin.destroy');
-
-
-
-
-
-
             // USER CRUD
             Route::get('users', [UsersController::class, 'index'])->name('users.index');
             Route::get('users/data', [UsersController::class, 'data'])->name('users.data');
@@ -82,9 +73,26 @@ Route::prefix('admin')
             Route::get('users/{id}/edit', [UsersController::class, 'edit'])->name('users.edit');
             Route::put('users/{id}', [UsersController::class, 'update'])->name('users.update');
             Route::delete('users/{id}', [UsersController::class, 'destroy'])->name('users.destroy');
-
             // Add all the admin routes you want here
         });
+
+        Route::middleware('admin_or_manager')->group(function () {
+            // CLIENT CRUD
+            Route::get('/clients/uploadForm', [ClientsController::class, 'uploadForm'])->name('clients.uploadForm');
+            Route::post('/clients/uploadForm', [ClientsController::class, 'upload'])->name('clients.upload');
+            Route::get('clients/create', [ClientsController::class, 'create'])->name('clients.create');
+            Route::post('clients', [ClientsController::class, 'store'])->name('clients.store');
+            Route::get('clients/{client}/edit', [ClientsController::class, 'edit'])->name('clients.edit');
+            Route::put('clients/{client}', [ClientsController::class, 'update'])->name('clients.update');
+            Route::delete('clients/{client}', [ClientsController::class, 'destroy'])->name('clients.destroy');
+
+            Route::get('tasks/create', [TasksController::class, 'create'])->name('tasks.create');
+            Route::post('tasks', [TasksController::class, 'store'])->name('tasks.store');
+        });
+        Route::get('/clients/data', [ClientsController::class, 'data'])->name('clients.data');
+        Route::get('clients', [ClientsController::class, 'index'])->name('clients.index');
+
+
 
 
 
@@ -118,24 +126,11 @@ Route::prefix('admin')
         // TASKS CRUD
         Route::get('tasks', [TasksController::class, 'index'])->name('tasks.index');
         Route::get('tasks/data', [TasksController::class, 'data'])->name('tasks.data');
-        Route::get('tasks/create', [TasksController::class, 'create'])->name('tasks.create');
-        Route::post('tasks', [TasksController::class, 'store'])->name('tasks.store');
         Route::get('tasks/{id}/edit', [TasksController::class, 'edit'])->name('tasks.edit');
         Route::put('tasks/{id}', [TasksController::class, 'update'])->name('tasks.update');
         Route::delete('tasks/{id}', [TasksController::class, 'destroy'])->name('destroy');
 
-        // CLIENT CRUD
-        Route::get('/clients/data', [ClientsController::class, 'data'])->name('clients.data');
 
-        Route::get('/clients/uploadForm', [ClientsController::class, 'uploadForm'])->name('clients.uploadForm');
-        Route::post('/clients/uploadForm', [ClientsController::class, 'upload'])->name('clients.upload');
-
-        Route::get('clients', [ClientsController::class, 'index'])->name('clients.index');
-        Route::get('clients/create', [ClientsController::class, 'create'])->name('clients.create');
-        Route::post('clients', [ClientsController::class, 'store'])->name('clients.store');
-        Route::get('clients/{client}/edit', [ClientsController::class, 'edit'])->name('clients.edit');
-        Route::put('clients/{client}', [ClientsController::class, 'update'])->name('clients.update');
-        Route::delete('clients/{client}', [ClientsController::class, 'destroy'])->name('clients.destroy');
 
 
 

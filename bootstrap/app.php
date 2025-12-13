@@ -15,6 +15,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin_or_user' => \App\Http\Middleware\AllowAdminOrUser::class,
             'set_locale' => \App\Http\Middleware\SetLocale::class,
             'admin_only' => \App\Http\Middleware\AdminOnly::class,
+            'admin_or_manager' => \App\Http\Middleware\AllowAdminOrManager::class,
+
 
 
         ]);

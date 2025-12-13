@@ -83,7 +83,7 @@
         </div> --}}
 
         <div class="d-flex gap-2 flex-wrap">
-            <button type="submit" class="btn btn-primary">{{ isset($deal) ? ('deals.update') : ('deals.save') }}</button>
+            <button type="submit" class="btn btn-primary">{{ isset($deal) ? __('deals.update') : __('deals.save') }}</button>
             <a href="{{ route('admin.deals.index') }}" class="btn btn-secondary">{{ __('deals.cancel') }}</a>
         </div>
     </form>
