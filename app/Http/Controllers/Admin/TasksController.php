@@ -30,7 +30,7 @@ class TasksController extends Controller
         $query = Task::with('user');
 
         // Apply role-based filtering (Admin, Manager, Sales)
-        $query = $this->filterAccess($query);
+        $query = $this->filterAccess($query, 'task');
 
         $columns = ['id', 'title', 'description', 'user.name', 'due_date', 'status', 'created_at'];
         $service = new BaseDataTable($query, $columns, true, 'components.default-buttons-table');
@@ -42,19 +42,30 @@ class TasksController extends Controller
     // Show create form
     public function create()
     {
-        $users = User::all();
+        $authUser = auth()->user(); // get the currently logged-in user
+        $users = collect();
+
+        if ($authUser->role?->name === 'Manager') {
+            // Assuming your User model has a 'team' relationship that returns Sales users
+            $users = $authUser->team()->get();
+        } else {
+            // For admins or others, get all users
+            $users = User::all();
+        }
+
         return view('admin.tasks.create', compact('users'));
     }
+
 
     // Store task
     public function store(Request $request)
     {
         $request->validate([
-            'title'       => 'required|string|max:255',
+            'title' => 'required|string|max:255',
             'description' => 'required|string',
             'assigned_to' => 'nullable|exists:users,id',
-            'status'      => 'required|string|in:pending,in-progress,completed',
-            'due_date'    => 'nullable|date',
+            'status' => 'required|string|in:pending,in-progress,completed',
+            'due_date' => 'nullable|date',
         ]);
 
         Task::create($request->all());
@@ -67,8 +78,16 @@ class TasksController extends Controller
     public function edit($id)
     {
         $task = Task::findOrFail($id);
-        $users = User::all();
+        $authUser = auth()->user(); // get the currently logged-in user
+        $users = collect();
 
+        if ($authUser->role?->name === 'Manager') {
+            // Assuming your User model has a 'team' relationship that returns Sales users
+            $users = $authUser->team()->get();
+        } else {
+            // For admins or others, get all users
+            $users = User::all();
+        }
         return view('admin.tasks.edit', compact('task', 'users'));
     }
 
@@ -78,11 +97,11 @@ class TasksController extends Controller
         $task = Task::findOrFail($id);
 
         $request->validate([
-            'title'       => 'required|string|max:255',
+            'title' => 'required|string|max:255',
             'description' => 'required|string',
             'assigned_to' => 'nullable|exists:users,id',
-            'status'      => 'required|string|in:pending,in-progress,completed',
-            'due_date'    => 'nullable|date',
+            'status' => 'required|string|in:pending,in-progress,completed',
+            'due_date' => 'nullable|date',
         ]);
 
         $task->update($request->all());

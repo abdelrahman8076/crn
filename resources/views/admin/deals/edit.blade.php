@@ -51,6 +51,7 @@
         </div>
 
         {{-- Lead --}}
+
         <div class="mb-3">
             <label for="lead_id" class="form-label">{{ __('deals.lead') }} *</label>
             <select name="lead_id" id="lead_id" class="form-select @error('lead_id') is-invalid @enderror" required>

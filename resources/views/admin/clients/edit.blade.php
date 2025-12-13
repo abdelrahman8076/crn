@@ -81,6 +81,7 @@
                 </div>
             @endif
 
+            @notrole('Sales')
 
             <button type="submit" class="btn btn-primary">
                 {{ __('clients.update') }}
@@ -89,6 +90,8 @@
             <a href="{{ route('admin.clients.index') }}" class="btn btn-secondary">
                 {{ __('clients.cancel') }}
             </a>
+                        @endrole
+
         </form>
     </div>
 @endsection

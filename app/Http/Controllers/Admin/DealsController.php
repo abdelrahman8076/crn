@@ -50,7 +50,7 @@ class DealsController extends Controller
     // Show create form
     public function create()
     {
-        $leads = $this->filterAccess(Lead::query())->get();
+        $leads = $this->filterAccess( $query = Lead::with(['client']) , 'lead')->get();
         $users = User::all();
 
         return view('admin.deals.create', compact('leads', 'users'));
@@ -77,9 +77,9 @@ class DealsController extends Controller
     public function edit($id)
     {
         $deal = Deal::findOrFail($id);
-        $leads = $this->filterAccess(Lead::query())->get();
+        $leads = $this->filterAccess( $query = Lead::with(['client']) , 'lead')->get();
         $users = User::all();
-
+      
         return view('admin.deals.edit', compact('deal', 'leads', 'users'));
     }
 

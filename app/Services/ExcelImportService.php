@@ -31,15 +31,27 @@ class ExcelImportService
         $rows = $sheet->toArray();
 
         $fillable = $this->model->getFillable();
-        $clientsToInsert = [];
+        $rowsToInsert = [];
         $errors = [];
 
         foreach ($rows as $index => $row) {
-            if ($index === 0) continue; // skip header
+            if ($index === 0)
+                continue; // Skip header row
 
             $data = [];
             foreach ($fillable as $i => $field) {
-                $data[$field] = trim($row[$i] ?? '');
+                $value = trim($row[$i] ?? '');
+                $data[$field] = $value === '' ? null : $value;
+                if ($data[$field] === null) {
+                    unset($data[$field]);
+
+                }
+            }
+
+
+            // Skip completely empty rows
+            if (collect($data)->every(fn($v) => is_null($v))) {
+                continue;
             }
 
             // Validate required columns
@@ -62,19 +74,19 @@ class ExcelImportService
                 $data['updated_at'] = now();
             }
 
-            $clientsToInsert[] = $data;
+            $rowsToInsert[] = $data;
         }
 
-        // Bulk insert for performance
+        // Bulk insert valid rows
         $imported = 0;
-        if (!empty($clientsToInsert)) {
-            $this->model->insert($clientsToInsert);
-            $imported = count($clientsToInsert);
+        if (!empty($rowsToInsert)) {
+            $this->model->insert($rowsToInsert);
+            $imported = count($rowsToInsert);
         }
 
         return [
             'imported' => $imported,
-            'errors'   => $errors,
+            'errors' => $errors,
         ];
     }
 }

@@ -73,13 +73,18 @@ class User extends Authenticatable
         return $this->hasMany(Note::class, 'user_id');
     }
     public function scopeSales($query)
-{
-    return $query->whereRelation('role', 'name', 'Sales');
-}
+    {
+        return $query->whereRelation('role', 'name', 'Sales');
+    }
 
-public function scopeManagers($query)
-{
-    return $query->whereRelation('role', 'name', 'Manager');
-}
+    public function scopeManagers($query)
+    {
+        return $query->whereRelation('role', 'name', 'Manager');
+    }
+    public function team()
+    {
+        return $this->hasMany(User::class, 'manager_id'); // Adjust 'manager_id' as your DB column
+    }
+
 
 }
