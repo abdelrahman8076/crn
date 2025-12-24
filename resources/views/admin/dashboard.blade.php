@@ -40,18 +40,7 @@
             </div>
         </div>
 
-        {{-- Leads Card --}}
-        <div class="col-12 col-sm-6 col-md-3">
-            <div class="card shadow-sm border-0">
-                <div class="card-body d-flex align-items-center justify-content-between">
-                    <div>
-                        <h6 class="text-uppercase text-muted mb-2">{{ __('admins.leads') }}</h6>
-                        <h3 class="mb-0">{{ $data['totalLeads'] ?? 0 }}</h3>
-                    </div>
-                    <i class="ti ti-target fs-2 text-warning"></i>
-                </div>
-            </div>
-        </div>
+
 
         {{-- Deals Card --}}
         <div class="col-12 col-sm-6 col-md-3">
