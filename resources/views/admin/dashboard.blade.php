@@ -7,18 +7,25 @@
 
     <div class="row g-4">
 
-        {{-- Users Card --}}
-        <div class="col-12 col-sm-6 col-md-3">
-            <div class="card shadow-sm border-0">
-                <div class="card-body d-flex align-items-center justify-content-between">
-                    <div>
-                        <h6 class="text-uppercase text-muted mb-2">{{ __('admins.users') }}</h6>
-                        <h3 class="mb-0">{{ $data['totalUsers'] ?? 0 }}</h3>
-                    </div>
-                    <i class="ti ti-users fs-2 text-primary"></i>
+@auth('admin')
+    {{-- Users Card --}}
+    <div class="col-12 col-sm-6 col-md-3">
+        <div class="card shadow-sm border-0">
+            <div class="card-body d-flex align-items-center justify-content-between">
+                <div>
+                    <h6 class="text-uppercase text-muted mb-2">
+                        {{ __('admins.users') }}
+                    </h6>
+                    <h3 class="mb-0">
+                        {{ $data['totalUsers'] ?? 0 }}
+                    </h3>
                 </div>
+                <i class="ti ti-users fs-2 text-primary"></i>
             </div>
         </div>
+    </div>
+@endauth
+
 
         {{-- Clients Card --}}
         <div class="col-12 col-sm-6 col-md-3">
@@ -62,7 +69,7 @@
     </div>
 
     {{-- Recent Activities --}}
-    <div class="row mt-4">
+    {{-- <div class="row mt-4">
         <div class="col-12">
             <div class="card shadow-sm border-0">
                 <div class="card-header">
@@ -73,7 +80,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> --}}
 
 </div>
 @endsection

@@ -18,4 +18,6 @@ return [
     'save'            => 'حفظ',
     'update'          => 'تحديث',
     'cancel'          => 'إلغاء',
+        'client' => 'العميل',
+    'select_client' => 'اختر العميل',
 ];

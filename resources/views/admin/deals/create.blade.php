@@ -50,21 +50,32 @@
             @enderror
         </div>
 
-        {{-- Lead --}}
-        <div class="mb-3">
-            <label for="lead_id" class="form-label">{{ __('deals.lead') }} *</label>
-            <select name="lead_id" id="lead_id" class="form-select @error('lead_id') is-invalid @enderror" required>
-                <option value="">{{ __('deals.select_lead') }}</option>
-                @foreach($leads as $lead)
-                    <option value="{{ $lead->id }}" {{ old('lead_id', $deal->lead_id ?? '') == $lead->id ? 'selected' : '' }}>
-                        {{ $lead->title }}
-                    </option>
-                @endforeach
-            </select>
-            @error('lead_id')
-                <div class="invalid-feedback">{{ $message }}</div>
-            @enderror
-        </div>
+<div class="mb-3">
+    <label for="client_id" class="form-label">
+        {{ __('deals.client') }} *
+    </label>
+
+    <select name="client_id"
+            id="client_id"
+            class="form-select @error('client_id') is-invalid @enderror"
+            required>
+        <option value="">
+            {{ __('deals.select_client') }}
+        </option>
+
+        @foreach($clients as $client)
+            <option value="{{ $client->id }}"
+                {{ old('client_id', $deal->client_id ?? '') == $client->id ? 'selected' : '' }}>
+                {{ $client->name }}
+            </option>
+        @endforeach
+    </select>
+
+    @error('client_id')
+        <div class="invalid-feedback">{{ $message }}</div>
+    @enderror
+</div>
+
 
         {{-- Assigned To
         <div class="mb-3">

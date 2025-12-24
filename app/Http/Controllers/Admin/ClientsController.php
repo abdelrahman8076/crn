@@ -21,7 +21,7 @@ class ClientsController extends Controller
      */
     public function index()
     {
-        $columns = ['id', 'name', 'phone', 'email', 'company', 'address'];
+        $columns = ['id', 'name', 'phone', 'email', 'company', 'address', 'source', 'status'];
         $renderComponents = true;
         $customActionsView = 'components.default-buttons-table';
 
@@ -35,7 +35,7 @@ class ClientsController extends Controller
     {
         $query = Client::with(['assignedSale', 'assignedManager']);
         $query = $this->filterAccess($query); // for sales
-        $columns = ['id', 'name', 'phone', 'email', 'company', 'address'];
+        $columns = ['id', 'name', 'phone', 'email', 'company', 'address', 'source', 'status'];
 
         $service = new BaseDataTable(
             $query,
@@ -67,30 +67,32 @@ class ClientsController extends Controller
     /**
      * STORE NEW CLIENT
      */
-  public function store(Request $request)
-{
-    $data = $request->validate([
-        'name' => 'required|string|max:255',
-        'company' => 'nullable|string|max:255',
-        'address' => 'nullable|string|max:500',
-        'email' => 'nullable|email',
-        'phone' => 'nullable|string|max:30',
-        'assigned_to_user' => 'nullable|exists:users,id',
-        'assigned_to_manager' => 'nullable|exists:users,id',
-    ]);
+    public function store(Request $request)
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'company' => 'nullable|string|max:255',
+            'address' => 'nullable|string|max:500',
+            'email' => 'nullable|email',
+            'phone' => 'nullable|string|max:30',
+            'assigned_to_user' => 'nullable|exists:users,id',
+            'assigned_to_manager' => 'nullable|exists:users,id',
+            'source' => 'required|string|max:255',
+            'status' => 'required|string|max:50',
+        ]);
 
-    // If logged in via web guard and role is Manager, auto-assign
-    $webUser = Auth::guard('web')->user();
-    if ($webUser && $webUser->role?->name === 'Manager') {
-        $data['assigned_to_manager'] = $webUser->id;
+        // If logged in via web guard and role is Manager, auto-assign
+        $webUser = Auth::guard('web')->user();
+        if ($webUser && $webUser->role?->name === 'Manager') {
+            $data['assigned_to_manager'] = $webUser->id;
+        }
+
+        Client::create($data);
+
+        return redirect()
+            ->route('admin.clients.index')
+            ->with('success', __('Client created successfully.'));
     }
-
-    Client::create($data);
-
-    return redirect()
-        ->route('admin.clients.index')
-        ->with('success', __('Client created successfully.'));
-}
 
 
     /**
@@ -122,6 +124,8 @@ class ClientsController extends Controller
             'phone' => 'nullable|string|max:30',
             'assigned_to_user' => 'nullable|exists:users,id',
             'assigned_to_manager' => 'nullable|exists:users,id',
+            'source' => 'required|string|max:255',
+            'status' => 'required|string|max:50',
         ]);
 
         $client->update($data);

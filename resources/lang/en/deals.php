@@ -18,5 +18,7 @@ return [
     'save'            => 'Save',
     'update'          => 'Update',
     'cancel'          => 'Cancel',
+        'client' => 'Client',
+    'select_client' => 'Select Client',
 
 ];

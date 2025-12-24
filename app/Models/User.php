@@ -17,6 +17,9 @@ class User extends Authenticatable
         'role_id',
         'manager_id', // <-- used for sales team under managers
     ];
+         protected $casts = [
+    'created_at'=> 'date:Y-m-d',
+];
 
     protected $hidden = [
         'password',

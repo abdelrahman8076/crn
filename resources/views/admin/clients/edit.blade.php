@@ -51,6 +51,29 @@
                 @error('phone') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
 
+            {{-- Source --}}
+            <div class="mb-3">
+                <label for="source" class="form-label">{{ __('clients.source') }}</label>
+                <input type="text" class="form-control" id="source" name="source"
+                    value="{{ old('source', $client->source) }}">
+                @error('source') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            </div>
+
+            {{-- Status --}}
+            <div class="mb-3">
+                <label for="status" class="form-label">{{ __('clients.status') }}</label>
+                <select class="form-select" id="status" name="status">
+                    <option value="">{{ __('clients.select_status') }}</option>
+                    <option value="new" {{ old('status', $client->status) === 'new' ? 'selected' : '' }}>New</option>
+                    <option value="contacted" {{ old('status', $client->status) === 'contacted' ? 'selected' : '' }}>Contacted
+                    </option>
+                    <option value="qualified" {{ old('status', $client->status) === 'qualified' ? 'selected' : '' }}>Qualified
+                    </option>
+                    <option value="lost" {{ old('status', $client->status) === 'lost' ? 'selected' : '' }}>Lost</option>
+                </select>
+                @error('status') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            </div>
+
             {{-- Assign to Sales sale --}}
             <div class="mb-3">
                 <label class="form-label">{{ __('clients.assigned_sale') }}</label>
@@ -81,17 +104,16 @@
                 </div>
             @endif
 
-            @notrole('Sales')
+            @if (!isSales())
 
-            <button type="submit" class="btn btn-primary">
-                {{ __('clients.update') }}
-            </button>
+                <button type="submit" class="btn btn-primary">
+                    {{ __('clients.update') }}
+                </button>
 
-            <a href="{{ route('admin.clients.index') }}" class="btn btn-secondary">
-                {{ __('clients.cancel') }}
-            </a>
-                        @endrole
-
+                <a href="{{ route('admin.clients.index') }}" class="btn btn-secondary">
+                    {{ __('clients.cancel') }}
+                </a>
+            @endif
         </form>
     </div>
 @endsection

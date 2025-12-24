@@ -9,11 +9,11 @@ class Deal extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['deal_name','amount','stage','lead_id'];
+    protected $fillable = ['deal_name','amount','stage','client_id'];
 
-    public function lead()
+    public function client()
     {
-        return $this->belongsTo(Lead::class);
+        return $this->belongsTo(Client::class);
     }
 
     public function tasks()

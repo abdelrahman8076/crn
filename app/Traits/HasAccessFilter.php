@@ -50,11 +50,10 @@ trait HasAccessFilter
                 }
                 return $query->where('assigned_to_sale', $user->id);
 
-            case 'lead':
-                return $query->whereHas('client', fn($q) => $this->filterAccess($q, 'client'));
+
 
             case 'deal':
-                return $query->whereHas('lead.client', fn($q) => $this->filterAccess($q, 'client'));
+                return $query->whereHas('client', fn($q) => $this->filterAccess($q, 'client'));
             case 'task':
                 return $query->where('assigned_to', $user->id);
 

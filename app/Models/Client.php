@@ -15,6 +15,7 @@ class Client extends Model
         'email',
         'company',
         'address',
+        'source','status',
         'assigned_to_sale',
         'assigned_to_manager',
     ];

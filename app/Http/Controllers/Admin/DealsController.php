@@ -21,7 +21,7 @@ class DealsController extends Controller
     // List deals page
     public function index()
     {
-        $columns = ['id', 'deal_name', 'amount', 'stage', 'lead.client.name'];
+        $columns = ['id', 'deal_name', 'amount', 'stage', 'client.name'];
         $renderComponents = true; // or false based on your condition
         $customActionsView = 'components.default-buttons-table'; // full view path
 
@@ -32,13 +32,13 @@ class DealsController extends Controller
  public function data(Request $request)
 {
     // Start query with relationships
-    $query = Deal::with(['lead.client']);
+    $query = Deal::with(['client']);
 
     // Apply access filter for Deal hierarchy
     $query = $this->filterAccess($query, 'deal');
 
     // Columns for DataTable
-    $columns = ['id', 'deal_name', 'amount', 'stage', 'lead.client.name'];
+    $columns = ['id', 'deal_name', 'amount', 'stage', 'client.name'];
 
     // Build DataTable
     $service = new BaseDataTable($query, $columns, true, 'components.default-buttons-table');
@@ -50,10 +50,10 @@ class DealsController extends Controller
     // Show create form
     public function create()
     {
-        $leads = $this->filterAccess( $query = Lead::with(['client']) , 'lead')->get();
+        $clients = $this->getAccessibleClients(); // only clients the user can access
         $users = User::all();
 
-        return view('admin.deals.create', compact('leads', 'users'));
+        return view('admin.deals.create', compact('clients', 'users'));
     }
 
     // Store deal
@@ -63,7 +63,7 @@ class DealsController extends Controller
             'deal_name' => 'required|string|max:255',
             'amount'    => 'required|numeric',
             'stage'     => 'required|string|in:proposal,negotiation,closed-won,closed-lost',
-            'lead_id'   => 'required|exists:leads,id',
+            'client_id'   => 'required|exists:client,id',
             'assigned_to' => 'nullable|exists:users,id',
         ]);
 
@@ -77,10 +77,10 @@ class DealsController extends Controller
     public function edit($id)
     {
         $deal = Deal::findOrFail($id);
-        $leads = $this->filterAccess( $query = Lead::with(['client']) , 'lead')->get();
+        $clients = $this->getAccessibleClients(); // only clients the user can access
         $users = User::all();
       
-        return view('admin.deals.edit', compact('deal', 'leads', 'users'));
+        return view('admin.deals.edit', compact('deal', 'clients', 'users'));
     }
 
     // Update deal
@@ -92,7 +92,7 @@ class DealsController extends Controller
             'deal_name' => 'required|string|max:255',
             'amount'    => 'required|numeric',
             'stage'     => 'required|string|in:proposal,negotiation,closed-won,closed-lost',
-            'lead_id'   => 'required|exists:leads,id',
+            'client_id'   => 'required|exists:client,id',
             'assigned_to' => 'nullable|exists:users,id',
         ]);
 

@@ -49,6 +49,25 @@
                     value="{{ old('phone') }}">
                 @error('phone') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
+            {{-- Source --}}
+            <div class="mb-3">
+                <label for="source" class="form-label">{{ __('clients.source') }}</label>
+                <input type="text" class="form-control" id="source" name="source" value="{{ old('source') }}">
+                @error('source') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            </div>
+
+            {{-- Status --}}
+            <div class="mb-3">
+                <label for="status" class="form-label">{{ __('clients.status') }}</label>
+                <select class="form-select" id="status" name="status">
+                    <option value="">{{ __('clients.select_status') }}</option>
+                    <option value="new" {{ old('status') === 'new' ? 'selected' : '' }}>New</option>
+                    <option value="contacted" {{ old('status') === 'contacted' ? 'selected' : '' }}>Contacted</option>
+                    <option value="qualified" {{ old('status') === 'qualified' ? 'selected' : '' }}>Qualified</option>
+                    <option value="lost" {{ old('status') === 'lost' ? 'selected' : '' }}>Lost</option>
+                </select>
+                @error('status') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            </div>
 
             {{-- Assign to Sales User --}}
             <div class="mb-3">

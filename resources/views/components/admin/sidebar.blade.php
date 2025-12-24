@@ -69,13 +69,13 @@
                     </li>
 
            
-
+{{-- 
                     <li class="sidebar-item">
                         <a class="sidebar-link" href="{{ route('admin.leads.index') }}" aria-expanded="false">
                             <i class="ti ti-target"></i>
                             <span class="hide-menu">{{ __('aside.Leads') }}</span>
                         </a>
-                    </li>
+                    </li> --}}
 
                     <li class="sidebar-item">
                         <a class="sidebar-link" href="{{ route('admin.deals.index') }}" aria-expanded="false">
