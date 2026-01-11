@@ -1,7 +1,8 @@
 @props([
     'model',              // Eloquent model instance or object with an ID
     'hasDeactivate' => true, // set to false if you don’t want deactivate button
-    'routeName'=>null
+    'routeName'=>null,
+    'deleteFlag'=>false
 ])
 
 @php
@@ -10,6 +11,7 @@
     // Dynamic route names
     $editRoute = $routeName ? $routeName . '.edit' : null;
     $inactiveRoute = $routeName ? $routeName . '.deactivate' : null;
+    $deleteRoute= $routeName ? $routeName . '.destroy' :null;
    // $routeName = $routeName ?? null;
 
   //  dd($editRoute);
@@ -24,11 +26,23 @@
 )
     @if ($editRoute && Route::has($editRoute))
         <a href="{{ route($editRoute, $id) }}" class="btn btn-sm btn-outline-primary">
-            <i class="bi bi-pencil-square"></i> {{ __('Edit') }}
+            <i class="bi bi-pencil-square"></i> {{ __('admins.edit') }}
         </a>
     @endif
 @endif
 
+{{-- 🗑️ Delete Button --}}
+    {{-- Condition: Must be admin, deleteFlag must be true, AND model ID must NOT match current logged-in admin ID --}}
+    @if(auth('admin')->check() && $deleteFlag == true && auth('admin')->id() !== $id)
+        <form action="{{ route($deleteRoute, $id) }}" method="POST" style="display:inline;">
+            @csrf
+            @method('DELETE')
+            <button type="submit" class="btn btn-sm btn-outline-danger ms-2" 
+                    onclick="return confirm('{{ __('admin.confirm_delete') }}')">
+                <i class="bi bi-trash"></i> {{ __('admins.delete') }}
+            </button>
+        </form>
+    @endif
 
     {{-- 🚫 Deactivate Button --}}
     @if ($hasDeactivate && $inactiveRoute && Route::has($inactiveRoute))

@@ -73,6 +73,7 @@ class ClientsController extends Controller
             'name' => 'required|string|max:255',
             'company' => 'nullable|string|max:255',
             'address' => 'nullable|string|max:500',
+            'feedback' => 'nullable|string|max:255',
             'email' => 'nullable|email',
             'phone' => 'nullable|string|max:30',
             'assigned_to_user' => 'nullable|exists:users,id',
@@ -120,6 +121,8 @@ class ClientsController extends Controller
             'name' => 'required|string|max:255',
             'company' => 'nullable|string|max:255',
             'address' => 'nullable|string|max:500',
+                        'feedback' => 'nullable|string|max:255',
+
             'email' => 'nullable|email',
             'phone' => 'nullable|string|max:30',
             'assigned_to_user' => 'nullable|exists:users,id',

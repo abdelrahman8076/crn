@@ -7,7 +7,7 @@ return [
     'email' => 'Email',
     'phone' => 'Phone',
     'assigned_to' => 'Assigned To',
-    'select_user' => 'Select User',
+    'select_user' => 'Select Sales',
     'create' => 'Create',
     'update' => 'Update',
     'cancel' => 'Cancel',
@@ -32,7 +32,7 @@ return [
     'notes' => 'Notes',
 
 
-    'assigned_user' => 'Assigned User',
+    'assigned_user' => 'Assigned Sales',
     'assigned_manager' => 'Assigned Manager',
     'select_manager' => 'Select Manager',
     'select_sale' => 'Select Sales', // <-- add this
@@ -40,6 +40,20 @@ return [
     'source' => 'Source',
     'status' => 'Status',
     'select_status' => 'Select Status',
+
+    'feedback' => 'Feedback',
+    
+    // Status Options
+    'potential' => '1 - Potential',
+    'not_potential' => '2 - Not Potential',
+    'hot_case' => '3 - Hot Case',
+    'closed_deal' => '4 - Closed Deal',
+    'no_answer' => '5 - No Answer',
+    'meeting_done' => '6 - Meeting Done',
+
+    // Helper text
+    'whatsapp_helper' => 'Click to open WhatsApp chat',
+    'feedback_placeholder' => 'Enter client feedback here...',
 
 
 

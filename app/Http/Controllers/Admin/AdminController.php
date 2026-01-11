@@ -32,6 +32,7 @@ class AdminController extends Controller
         // Optional: send extra props to the view (e.g. routeName)
         $service->setActionProps([
             'routeName' => 'admin.admin',
+            'deleteFlag'=> true
         ]);
         return $service->make($request);
     }
@@ -39,7 +40,7 @@ class AdminController extends Controller
 
     public function create()
     {
-        return view('admin.register');
+        return view('admin.admins.create');
     }
 
     public function store(Request $request)
@@ -79,12 +80,12 @@ class AdminController extends Controller
 
         $admin->update($validated);
 
-        return redirect()->route('admin.admins.index')->with('success', __('admins.updated_success'));
+        return redirect()->route('admin.admin.index')->with('success', 'Admin Updated success');
     }
 
     public function destroy(Admin $admin)
     {
         $admin->delete();
-        return redirect()->route('admin.admins.index')->with('success', 'Admin deleted successfully.');
+        return redirect()->route('admin.admin.index')->with('success', 'Admin deleted successfully.');
     }
 }

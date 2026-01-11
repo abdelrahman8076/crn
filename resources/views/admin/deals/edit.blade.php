@@ -53,6 +53,7 @@
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>
+                {{-- {{ dd($clients) }} --}}
 
             {{-- Lead --}}
             <div class="mb-3">
@@ -65,10 +66,11 @@
                     <option value="">
                         {{ __('deals.select_client') }}
                     </option>
+                    
 
                     @foreach($clients as $client)
                         <option value="{{ $client->id }}" {{ old('client_id', $deal->client_id ?? '') == $client->id ? 'selected' : '' }}>
-                            {{ $client->title }}
+                {{ $client->name }}
                         </option>
                     @endforeach
                 </select>

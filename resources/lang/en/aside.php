@@ -12,6 +12,9 @@ return [
     'Tasks'               => 'Tasks',
     'Notes'               => 'Notes',
     'Apps'                => 'Apps',
+    'Main_Menu'             => 'Main Menu',
+    'crm_operations'        => 'CRM & Operations',
+    'admins_clients_upload' => 'Import Clients (CSV)',
 
     // Admin routes / actions
     'admin_index'         => 'Admins',
@@ -19,8 +22,8 @@ return [
     'admin_edit'          => 'Edit Admin',
 
     // Client upload
-    'admins_clients_upload'=> 'Upload Clients',
         'Logout' => 'Logout',
+        'System_Management'     => 'System Management',
 
 
 ];

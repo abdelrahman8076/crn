@@ -1,26 +1,29 @@
 @extends('layouts.admin')
 
 @section('content')
-<div class="container">
-    <x-flash-success />
-    <x-flash-error />
+    <div class="container">
+        <x-flash-success />
+        <x-flash-error />
 
         <div class="d-flex justify-content-between align-items-center mb-3 mt-5">
-        <h4>{{ __('tasks.title') }}</h4>
+            <h4>{{ __('tasks.title') }}</h4>
             @notrole('Sales')
 
-        <a href="{{ route('admin.tasks.create') }}" class="btn btn-primary">
-            <i class="bi bi-plus-circle me-1"></i> {{ __('tasks.create_button') }}
-        </a>
-                    @endrole
+            <a href="{{ route('admin.tasks.create') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-1"></i> {{ __('tasks.create_button') }}
+            </a>
+            @endrole
+            @if (Auth::guard('admin')->check())
+                <a href="{{ route('admin.tasks.create') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-1"></i> {{ __('tasks.create_button') }}
+            </a>
+            
+            @endif
 
+
+        </div>
+
+        <x-datatable :ajaxUrl="route('admin.tasks.data')" :columns="$columns" :renderComponents="$renderComponents"
+            :customActionsView="$customActionsView" />
     </div>
-
-    <x-datatable 
-        :ajaxUrl="route('admin.tasks.data')" 
-        :columns="$columns" 
-        :renderComponents="$renderComponents"
-        :customActionsView="$customActionsView" 
-    />
-</div>
 @endsection

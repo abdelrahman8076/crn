@@ -13,13 +13,16 @@ return [
     'Notes'               => 'الملاحظات',
     'Apps'                => 'التطبيقات',
 
+    'Main_Menu'             => 'القائمة الرئيسية',
+    'crm_operations'        => 'إدارة العملاء والعمليات',
+    'admins_clients_upload' => 'رفع بيانات العملاء',
     // Admin routes / actions
     'admin_index'         => 'المسؤولون',
     'admin_create'        => 'إنشاء مسؤول',
     'admin_edit'          => 'تعديل مسؤول',
+    'System_Management'     => 'إدارة النظام',
 
     // Client upload
-    'admins_clients_upload'=> 'رفع العملاء',
         'Logout' => 'تسجيل الخروج',
 
 

@@ -39,6 +39,22 @@ return [
     'select_status' => 'اختر الحالة',
 
 
+    
+    'feedback' => 'الملاحظات / التغذية الراجعة',
+    
+    // Status Options
+    'potential' => '1 - مهتم / محتمل',
+    'not_potential' => '2 - غير مهتم',
+    'hot_case' => '3 - حالة ساخنة (قيد التنفيذ)',
+    'closed_deal' => '4 - صفقة مغلقة (تمت)',
+    'no_answer' => '5 - لا يرد',
+    'meeting_done' => '6 - تم الاجتماع',
+
+    // Helper text
+    'whatsapp_helper' => 'اضغط لفتح محادثة واتساب',
+    'feedback_placeholder' => 'اكتب ملاحظاتك عن العميل هنا...',
+
+
 
     // Other actions
 ];

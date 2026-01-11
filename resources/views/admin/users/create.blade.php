@@ -57,37 +57,39 @@
             @enderror
         </div>
 
-        {{-- Role --}}
-        <div class="mb-3">
-            <label for="role_id" class="form-label">{{ __('users.role') }} *</label>
-            <select name="role_id" id="role_id" class="form-select @error('role_id') is-invalid @enderror" required>
-                <option value="">{{ __('users.select_role') }}</option>
-                @foreach($roles as $role)
-                    <option value="{{ $role->id }}" {{ old('role_id') == $role->id ? 'selected' : '' }}>
-                        {{ $role->name }}
-                    </option>
-                @endforeach
-            </select>
-            @error('role_id')
-                <div class="invalid-feedback">{{ $message }}</div>
-            @enderror
-        </div>
+  {{-- Role --}}
+<div class="mb-3">
+    <label for="role_id" class="form-label">{{ __('users.role') }} *</label>
+    <select name="role_id" id="role_id" class="form-select @error('role_id') is-invalid @enderror" required>
+        <option value="">{{ __('users.select_role') }}</option>
+        @foreach($roles as $role)
+            <option value="{{ $role->id }}" 
+                data-name="{{ strtolower($role->name) }}" {{-- Added data attribute --}}
+                {{ old('role_id') == $role->id ? 'selected' : '' }}>
+                {{ $role->name }}
+            </option>
+        @endforeach
+    </select>
+    @error('role_id')
+        <div class="invalid-feedback">{{ $message }}</div>
+    @enderror
+</div>
 
-        {{-- Manager --}}
-        <div class="mb-3">
-            <label for="manager_id" class="form-label">{{ __('users.manager') }}</label>
-            <select name="manager_id" id="manager_id" class="form-select @error('manager_id') is-invalid @enderror">
-                <option value="">{{ __('users.select_manager') }}</option>
-                @foreach($users as $manager)
-                    <option value="{{ $manager->id }}" {{ old('manager_id') == $manager->id ? 'selected' : '' }}>
-                        {{ $manager->name }}
-                    </option>
-                @endforeach
-            </select>
-            @error('manager_id')
-                <div class="invalid-feedback">{{ $message }}</div>
-            @enderror
-        </div>
+{{-- Manager --}}
+<div class="mb-3" id="manager_container"> {{-- Added ID here --}}
+    <label for="manager_id" class="form-label">{{ __('users.manager') }}</label>
+    <select name="manager_id" id="manager_id" class="form-select @error('manager_id') is-invalid @enderror">
+        <option value="">{{ __('users.select_manager') }}</option>
+        @foreach($users as $manager)
+            <option value="{{ $manager->id }}" {{ old('manager_id') == $manager->id ? 'selected' : '' }}>
+                {{ $manager->name }}
+            </option>
+        @endforeach
+    </select>
+    @error('manager_id')
+        <div class="invalid-feedback">{{ $message }}</div>
+    @enderror
+</div>
 
         <button type="submit" class="btn btn-primary">
             <i class="bi bi-check-circle me-1"></i> {{ __('users.save') }}
@@ -95,3 +97,30 @@
     </form>
 </div>
 @endsection
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const roleSelect = document.getElementById('role_id');
+        const managerContainer = document.getElementById('manager_container');
+
+        function toggleManagerField() {
+            // Get the selected option's role name from the data attribute
+            const selectedOption = roleSelect.options[roleSelect.selectedIndex];
+            const roleName = selectedOption ? selectedOption.getAttribute('data-name') : '';
+
+            // If the role name is 'manager', hide the container
+            if (roleName === 'manager') {
+                managerContainer.style.display = 'none';
+                // Reset manager selection so it doesn't submit a value
+                document.getElementById('manager_id').value = '';
+            } else {
+                managerContainer.style.display = 'block';
+            }
+        }
+
+        // Listen for changes
+        roleSelect.addEventListener('change', toggleManagerField);
+
+        // Run once on load to set the correct state
+        toggleManagerField();
+    });
+</script>

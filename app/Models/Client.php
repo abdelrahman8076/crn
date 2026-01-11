@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class Client extends Model
 {
@@ -18,7 +19,17 @@ class Client extends Model
         'source','status',
         'assigned_to_sale',
         'assigned_to_manager',
+        'feedback'
     ];
+    protected function status(): Attribute
+{
+    return Attribute::make(
+        get: fn ($value) => ucwords(str_replace('_', ' ', $value)),
+        
+        // Optional: Ensure it's saved as snake_case in the DB
+        set: fn ($value) => strtolower(str_replace(' ', '_', $value)),
+    );
+}
 
     // Relationship for Sales/sale
     public function assignedSale()

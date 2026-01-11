@@ -31,5 +31,7 @@ return [
     'recent_activities_desc' => 'يمكنك عرض أحدث أنشطة العملاء أو الصفقات هنا.',
         'title'               => 'المسؤولون',
     'create_button'       => 'إنشاء مسؤول',
+    'edit' => 'تعديل',
+    'delete' => 'حذف',
 
 ];

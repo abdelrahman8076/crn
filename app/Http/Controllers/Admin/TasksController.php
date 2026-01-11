@@ -45,7 +45,7 @@ class TasksController extends Controller
         $authUser = auth()->user(); // get the currently logged-in user
         $users = collect();
 
-        if ($authUser->role?->name === 'Manager') {
+        if (!Auth::guard('admin')->check()) {
             // Assuming your User model has a 'team' relationship that returns Sales users
             $users = $authUser->team()->get();
         } else {
@@ -81,7 +81,7 @@ class TasksController extends Controller
         $authUser = auth()->user(); // get the currently logged-in user
         $users = collect();
 
-        if ($authUser->role?->name === 'Manager') {
+        if (!Auth::guard('admin')->check()) {
             // Assuming your User model has a 'team' relationship that returns Sales users
             $users = $authUser->team()->get();
         } else {

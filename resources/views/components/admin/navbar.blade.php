@@ -1,6 +1,6 @@
 <body>
   <!-- Body Wrapper -->
-  <div class="page-wrapper mb-5" id="main-wrapper" data-layout="vertical" data-navbarbg="skin6" data-sidebartype="full"
+  <div class="page-wrapper mt-5 mb-5" id="main-wrapper" data-layout="vertical" data-navbarbg="skin6" data-sidebartype="full"
     data-sidebar-position="fixed" data-header-position="fixed">
 
     <!-- App Topstrip -->
@@ -11,7 +11,7 @@
         
         <!-- Hamburger Menu Button -->
         <a class="nav-link sidebar-toggle text-white " href="javascript:void(0)"id="sidebarToggle">
-          <i class="ti ti-menu-2 fs-4"></i>
+          <i class="ti ti-menu-2 fs-4 ml-5"></i>
         </a>
 
         <!-- Logo -->

@@ -63,7 +63,7 @@ class DealsController extends Controller
             'deal_name' => 'required|string|max:255',
             'amount'    => 'required|numeric',
             'stage'     => 'required|string|in:proposal,negotiation,closed-won,closed-lost',
-            'client_id'   => 'required|exists:client,id',
+            'client_id'   => 'required|exists:clients,id',
             'assigned_to' => 'nullable|exists:users,id',
         ]);
 
@@ -92,7 +92,7 @@ class DealsController extends Controller
             'deal_name' => 'required|string|max:255',
             'amount'    => 'required|numeric',
             'stage'     => 'required|string|in:proposal,negotiation,closed-won,closed-lost',
-            'client_id'   => 'required|exists:client,id',
+            'client_id'   => 'required|exists:clients,id',
             'assigned_to' => 'nullable|exists:users,id',
         ]);
 
