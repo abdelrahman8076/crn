@@ -83,15 +83,15 @@
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label class="form-label">{{ __('clients.assigned_user') }}</label>
-                    <select class="form-select @error('assigned_to_user') is-invalid @enderror" name="assigned_to_user">
-                        <option value="">{{ __('clients.select_user') }}</option>
+                    <select class="form-select @error('assigned_to_sale') is-invalid @enderror" name="assigned_to_sale">
+                        <option value="">{{ __('clients.select_sale') }}</option>
                         @foreach($sales as $sale)
-                            <option value="{{ $sale->id }}" {{ old('assigned_to_user') == $sale->id ? 'selected' : '' }}>
+                            <option value="{{ $sale->id }}" {{ old('assigned_to_sale') == $sale->id ? 'selected' : '' }}>
                                 {{ $sale->name }}
                             </option>
                         @endforeach
                     </select>
-                    @error('assigned_to_user') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                    @error('assigned_to_sale') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
 
                 @if(auth()->guard('admin')->check())

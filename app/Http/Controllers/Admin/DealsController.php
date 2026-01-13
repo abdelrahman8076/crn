@@ -67,7 +67,7 @@ class DealsController extends Controller
             'assigned_to' => 'nullable|exists:users,id',
         ]);
 
-        Deal::create($request->all());
+        $deal = Deal::create($request->all());
 
         return redirect()->route('admin.deals.index')
             ->with('success', __('Deal created successfully.'));
@@ -96,8 +96,13 @@ class DealsController extends Controller
             'assigned_to' => 'nullable|exists:users,id',
         ]);
 
+        // Capture previous stage and amount before update
+        $previousStage = $deal->getOriginal('stage');
+        $previousAmount = $deal->getOriginal('amount');
+
         $deal->update($request->all());
 
+        // Model observers will handle syncing targets
         return redirect()->route('admin.deals.index')
             ->with('success', __('Deal updated successfully.'));
     }
@@ -105,7 +110,9 @@ class DealsController extends Controller
     // Delete deal
     public function destroy($id)
     {
-        Deal::findOrFail($id)->delete();
+        $deal = Deal::findOrFail($id);
+
+        $deal->delete();
 
         return redirect()->route('admin.deals.index')
             ->with('success', __('Deal deleted successfully.'));

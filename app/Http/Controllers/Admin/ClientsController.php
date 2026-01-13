@@ -76,11 +76,18 @@ class ClientsController extends Controller
             'feedback' => 'nullable|string|max:255',
             'email' => 'nullable|email',
             'phone' => 'nullable|string|max:30',
+            // Form uses 'assigned_to_user' for sales select; map it to DB field 'assigned_to_sale' after validation
             'assigned_to_user' => 'nullable|exists:users,id',
             'assigned_to_manager' => 'nullable|exists:users,id',
             'source' => 'required|string|max:255',
             'status' => 'required|string|max:50',
         ]);
+
+        // Map form field to DB field
+        if (array_key_exists('assigned_to_user', $data)) {
+            $data['assigned_to_sale'] = $data['assigned_to_user'];
+            unset($data['assigned_to_user']);
+        }
 
         // If logged in via web guard and role is Manager, auto-assign
         $webUser = Auth::guard('web')->user();
@@ -130,6 +137,12 @@ class ClientsController extends Controller
             'source' => 'required|string|max:255',
             'status' => 'required|string|max:50',
         ]);
+
+        // Map form field to DB field
+        if (array_key_exists('assigned_to_user', $data)) {
+            $data['assigned_to_sale'] = $data['assigned_to_user'];
+            unset($data['assigned_to_user']);
+        }
 
         $client->update($data);
 

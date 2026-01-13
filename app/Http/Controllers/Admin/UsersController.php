@@ -4,19 +4,19 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Target;
+use App\Models\Role;
 use Illuminate\Http\Request;
 use App\Services\DataTables\BaseDataTable;
 use App\Traits\HasAccessFilter;
 use Illuminate\Support\Facades\Auth;
-use \App\Models\Role;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class UsersController extends Controller
 {
     use HasAccessFilter;
 
-    /**
-     * Display the user table view.
-     */
     public function index()
     {
         $columns = ['id', 'name', 'email', 'created_at'];
@@ -26,14 +26,9 @@ class UsersController extends Controller
         return view('admin.users.index', compact('columns', 'renderComponents', 'customActionsView'));
     }
 
-    /**
-     * DataTables API
-     */
     public function data(Request $request)
     {
         $query = User::query();
-
-        // Apply access filter (from trait)
         $query = $this->filterAccess($query);
 
         $columns = ['id', 'name', 'email', 'created_at'];
@@ -42,48 +37,31 @@ class UsersController extends Controller
         $service->setActionProps([
             'routeName' => 'admin.users',
             'deleteFlag' => true
-
         ]);
 
         return $service->make($request);
     }
 
-    /**
-     * Show create form.
-     */
     public function create()
     {
         $roles = Role::all();
-$users = User::where('role_id', 1)->get();        return view('admin.users.create', compact('roles', 'users'));
+        $users = User::all();
+        return view('admin.users.create', compact('roles', 'users'));
     }
+public function store(Request $request)
+{
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'email' => 'required|email|unique:users,email',
+        'password' => 'required|min:6|confirmed',
+        'role_id' => 'required|exists:roles,id',
+        'manager_id' => 'nullable|exists:users,id',
+        'targets.*.amount' => 'nullable|integer|min:1',
+        'targets.*.period' => 'required_with:targets.*.amount|string',
+    ]);
 
-    public function edit($id)
-    {
-        $user = User::findOrFail($id);
-        $roles = Role::all();
-        $users = User::where('id', '!=', $user->id)->get(); // exclude self from manager dropdown
-
-        if (!$this->canAccess($user)) {
-            return redirect()->route('admin.users.index')
-                ->with('error', 'You do not have access to this user.');
-        }
-
-        return view('admin.users.edit', compact('user', 'roles', 'users'));
-    }
-
-
-
-    public function store(Request $request)
-    {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|min:6|confirmed',
-            'role_id' => 'required|exists:roles,id',
-            'manager_id' => 'nullable|exists:users,id|not_in:' . Auth::id(), // cannot choose self
-        ]);
-
-        User::create([
+    DB::transaction(function () use ($request) {
+        $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => bcrypt($request->password),
@@ -91,7 +69,34 @@ $users = User::where('role_id', 1)->get();        return view('admin.users.creat
             'manager_id' => $request->manager_id,
         ]);
 
-        return redirect()->route('admin.users.index')->with('success', 'User created successfully');
+        if ($request->has('targets')) {
+            foreach ($request->targets as $targetData) {
+                if (!empty($targetData['amount'])) {
+                    // This calls your existing recursive logic
+                    $this->assignManagerTarget($user, $targetData['amount'], $targetData['period']);
+                }
+            }
+        }
+    });
+
+    return redirect()->route('admin.users.index')->with('success', __('users.created_successfully'));
+}
+
+    public function edit($id)
+    {
+        // Load ALL targets ordered by period to show history in the view
+        $user = User::with(['targets' => function ($q) {
+            $q->orderBy('period', 'desc');
+        }])->findOrFail($id);
+
+        if (!$this->canAccess($user)) {
+            return redirect()->route('admin.users.index')->with('error', 'No Access.');
+        }
+
+        $roles = Role::all();
+        $users = User::where('id', '!=', $user->id)->get();
+
+        return view('admin.users.edit', compact('user', 'roles', 'users'));
     }
 
     public function update(Request $request, $id)
@@ -99,8 +104,7 @@ $users = User::where('role_id', 1)->get();        return view('admin.users.creat
         $user = User::findOrFail($id);
 
         if (!$this->canAccess($user)) {
-            return redirect()->route('admin.users.index')
-                ->with('error', 'You do not have access to update this user.');
+            return redirect()->route('admin.users.index')->with('error', 'Unauthorized.');
         }
 
         $request->validate([
@@ -108,60 +112,91 @@ $users = User::where('role_id', 1)->get();        return view('admin.users.creat
             'email' => "required|email|unique:users,email,{$id}",
             'password' => 'nullable|min:6|confirmed',
             'role_id' => 'required|exists:roles,id',
-            'manager_id' => 'nullable|exists:users,id|not_in:' . $id, // cannot assign self
+            'manager_id' => 'nullable|exists:users,id|not_in:' . $id,
+            'target_total' => 'nullable|integer|min:0',
+            'target_period' => 'required_with:target_total|string',
         ]);
 
-        $user->name = $request->name;
-        $user->email = $request->email;
-        $user->role_id = $request->role_id;
-        $user->manager_id = $request->manager_id;
+        DB::transaction(function () use ($request, $user) {
+            $user->name = $request->name;
+            $user->email = $request->email;
+            $user->role_id = $request->role_id;
+            $user->manager_id = $request->manager_id;
 
-        if ($request->password) {
-            $user->password = bcrypt($request->password);
+            if ($request->password) {
+                $user->password = bcrypt($request->password);
+            }
+            $user->save();
+
+            if ($request->filled('target_total')) {
+                $this->assignManagerTarget($user, $request->target_total, $request->target_period);
+            }
+        });
+
+        return redirect()->route('admin.users.index')->with('success', __('users.updated_successfully'));
+    }
+
+    /**
+     * Logic: Assigns target to Manager and auto-distributes to their sales team.
+     */
+    public function assignManagerTarget(User $manager, int $managerTarget, string $period)
+    {
+        // 1. Update/Create target for the Manager
+        $this->assignTarget($manager, $managerTarget, $period);
+
+        // 2. Distribute to Sales Team
+        $sales = $manager->salesTeam; 
+
+        if ($sales && $sales->count() > 0) {
+            $salesCount = $sales->count();
+            $individualTarget = intval($managerTarget / $salesCount);
+
+            foreach ($sales as $sale) {
+                $this->assignTarget($sale, $individualTarget, $period);
+            }
+        }
+    }
+
+    /**
+     * Core logic: Supports multiple targets by using 'period' as a unique key per user.
+     */
+    protected function assignTarget(User $user, int $value, string $period)
+    {
+        // Determine if this target should be the active one (Current month)
+        $currentMonth = Carbon::now()->format('Y-m');
+        $isActive = ($period === $currentMonth);
+
+        // If we are setting a new active target, deactivate others
+        if ($isActive) {
+            Target::where('user_id', $user->id)->update(['is_active' => false]);
         }
 
-        $user->save();
-
-        return redirect()->route('admin.users.index')->with('success', 'User updated successfully');
+        // updateOrCreate ensures we don't have two records for '2024-05' for the same user
+        return Target::updateOrCreate(
+            [
+                'user_id' => $user->id,
+                'period'  => $period,
+            ],
+            [
+                'target_total'     => $value,
+                'target_remaining' => $value, // Logic: reset remaining on update, or adjust as needed
+                'is_active'        => $isActive,
+            ]
+        );
     }
 
-    /**
-     * Delete user.
-     */
-public function destroy($id)
-{
-    // Prevent the currently logged-in Admin from deleting themselves
-    if (auth('admin')->check() && auth('admin')->id() == $id) {
-        return redirect()->back()->with('error', 'You cannot delete your own account while logged in.');
+    public function destroy($id)
+    {
+        $user = User::findOrFail($id);
+        if (!$this->canAccess($user)) return back()->with('error', 'Unauthorized');
+
+        $user->delete();
+        return redirect()->route('admin.users.index')->with('success', 'User Deleted');
     }
 
-    $user = User::findOrFail($id);
-
-    // Your existing access check
-    if (!$this->canAccess($user)) {
-        return redirect()->route('admin.users.index')
-            ->with('error', 'You do not have access to delete this user.');
+    protected function canAccess(User $user): bool
+    {
+        if (Auth::guard('admin')->check()) return true;
+        return $this->filterAccess(User::where('id', $user->id))->exists();
     }
-
-    // This will trigger the 'deleting' boot method we added to the model
-    $user->delete();
-
-    return redirect()->route('admin.users.index')
-        ->with('success', 'User and related data handled successfully');
-}
-
-    /**
-     * Check access helper (flash error compatible).
-     */
-    // protected function canAccess(User $user): bool
-    // {
-    //     // Admins can access everything
-    //     if (Auth::guard('admin')->check()) {
-    //         return true;
-    //     }
-
-    //     // Use your trait filter for managers/sales
-    //     $filtered = $this->filterAccess(User::where('id', $user->id), 'assigned_to')->exists();
-    //     return $filtered;
-    // }
 }

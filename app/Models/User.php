@@ -91,6 +91,16 @@ class User extends Authenticatable
         return $this->hasMany(Task::class, 'assigned_to');
     }
 
+    public function targets()
+{
+    return $this->hasMany(Target::class);
+}
+
+public function activeTarget()
+{
+    return $this->hasOne(Target::class)->where('is_active', true);
+}
+
     // User adds many notes
     // public function notes()
     // {
