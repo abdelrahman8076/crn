@@ -48,9 +48,7 @@
                 <a href="{{ route('login') }}" class="font-medium hover:text-[#706f6c] transition-colors">
                     {{ __('welcome.login') }}
                 </a>
-                <a href="{{ route('register') }}" class="px-5 py-2 bg-black text-white dark:bg-white dark:text-black rounded-full font-medium transition-transform hover:scale-105">
-                    {{ __('welcome.get_started') }}
-                </a>
+             
             @endauth
         </nav>
     </header>
@@ -84,52 +82,7 @@
             </button>
         </div>
 
-        <div class="w-full max-w-5xl aspect-video bg-white dark:bg-[#161615] rounded-2xl border border-[#e3e3e0] dark:border-[#3E3E3A] shadow-2xl overflow-hidden relative p-6">
-            <div class="w-full h-full bg-gray-50 dark:bg-[#0a0a0a] rounded-lg border border-[#e3e3e0] dark:border-[#3E3E3A] p-4 lg:p-8">
-                
-                <div class="flex justify-between items-center mb-8">
-                    <div class="text-{{ app()->getLocale() == 'ar' ? 'right' : 'left' }}">
-                        <h3 class="text-lg font-bold">{{ __('welcome.mockup_target_title') }}</h3>
-                        <p class="text-xs text-gray-500">{{ __('welcome.mockup_target_subtitle') }}</p>
-                    </div>
-                    <div class="px-3 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-full text-xs font-bold">
-                        {{ __('welcome.mockup_status') }}
-                    </div>
-                </div>
-
-                <div class="mb-10">
-                    <div class="flex justify-between mb-2 text-sm font-medium">
-                        <span>{{ __('welcome.mockup_collected') }}: $75,000</span>
-                        <span class="text-orange-500 font-bold">75%</span>
-                    </div>
-                    <div class="w-full h-4 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
-                        <div class="h-full bg-gradient-to-r from-orange-500 to-rose-500 w-[75%] rounded-full shadow-[0_0_15px_rgba(245,48,3,0.3)]"></div>
-                    </div>
-                    <div class="flex justify-between mt-2 text-[10px] text-gray-400 uppercase tracking-widest">
-                        <span>$0</span>
-                        <span>{{ __('welcome.mockup_goal') }}: $100,000</span>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    @php
-                        $dummyTeam = [
-                            ['name' => app()->getLocale() == 'ar' ? 'أحمد علي' : 'Alex Rivera', 'prog' => 'w-[85%]', 'color' => 'bg-emerald-500'],
-                            ['name' => app()->getLocale() == 'ar' ? 'سارة محمود' : 'Sarah Chen', 'prog' => 'w-[60%]', 'color' => 'bg-orange-500'],
-                            ['name' => app()->getLocale() == 'ar' ? 'محمد عبدالله' : 'M. Abdullah', 'prog' => 'w-[45%]', 'color' => 'bg-blue-500'],
-                        ];
-                    @endphp
-                    @foreach($dummyTeam as $member)
-                    <div class="p-4 bg-white dark:bg-[#161615] border border-[#e3e3e0] dark:border-[#3E3E3A] rounded-xl shadow-sm">
-                        <p class="text-xs font-bold mb-3 text-{{ app()->getLocale() == 'ar' ? 'right' : 'left' }}">{{ $member['name'] }}</p>
-                        <div class="w-full h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full">
-                            <div class="h-full {{ $member['color'] }} {{ $member['prog'] }} rounded-full"></div>
-                        </div>
-                    </div>
-                    @endforeach
-                </div>
-            </div>
-        </div>
+     
     </main>
 
     <footer class="w-full py-12 border-t border-[#e3e3e0] dark:border-[#3E3E3A] text-center">
