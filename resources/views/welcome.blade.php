@@ -74,9 +74,7 @@
         </p>
 
         <div class="flex flex-col sm:flex-row gap-4 mb-20">
-            <a href="{{ route('register') }}" class="px-8 py-4 bg-black text-white dark:bg-white dark:text-black rounded-xl font-semibold text-lg shadow-xl hover:opacity-90 transition-all">
-                {{ __('welcome.cta_primary') }}
-            </a>
+          
             <button class="px-8 py-4 border border-[#e3e3e0] dark:border-[#3E3E3A] rounded-xl font-semibold text-lg hover:bg-gray-50 dark:hover:bg-[#161615] transition-all">
                 {{ __('welcome.cta_secondary') }}
             </button>
