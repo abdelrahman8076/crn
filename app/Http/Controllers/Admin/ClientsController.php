@@ -10,6 +10,9 @@ use App\Services\ExcelImportService;
 use App\Services\DataTables\BaseDataTable;
 use App\Traits\HasAccessFilter;
 use Illuminate\Support\Facades\Auth;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate; // Import this!
 
 
 class ClientsController extends Controller
@@ -19,6 +22,45 @@ class ClientsController extends Controller
     /**
      * LIST PAGE
      */
+    public function downloadTemplate()
+    {
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $client = new Client();
+
+        // Get the fillable fields from the model
+        $headers = $client->getFillable();
+
+        // Set the headers in the first row
+        foreach ($headers as $index => $header) {
+            // Convert numeric index (0, 1, 2...) to Excel letter (A, B, C...)
+            $columnLetter = Coordinate::stringFromColumnIndex($index + 1);
+
+            // Use setCellValue with the coordinate string (e.g., "A1", "B1")
+            $sheet->setCellValue($columnLetter . '1', $header);
+
+            // Bold the header
+            $sheet->getStyle($columnLetter . '1')->getFont()->setBold(true);
+
+            // Optional: Auto-size columns for better readability
+            $sheet->getColumnDimension($columnLetter)->setAutoSize(true);
+        }
+
+        // Add sample data for the user
+        $sheet->setCellValue('A2', 'Full Name Example');
+        $sheet->setCellValue('B2', '2010XXXXXXXX');
+        $sheet->setCellValue('C2', 'example@email.com');
+
+        $writer = new Xlsx($spreadsheet);
+
+        $fileName = 'clients_template.xlsx';
+
+        return response()->streamDownload(function () use ($writer) {
+            $writer->save('php://output');
+        }, $fileName, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ]);
+    }
     public function index()
     {
         $columns = ['id', 'name', 'phone', 'email', 'company', 'address', 'source', 'status'];
@@ -128,7 +170,7 @@ class ClientsController extends Controller
             'name' => 'required|string|max:255',
             'company' => 'nullable|string|max:255',
             'address' => 'nullable|string|max:500',
-                        'feedback' => 'nullable|string|max:255',
+            'feedback' => 'nullable|string|max:255',
 
             'email' => 'nullable|email',
             'phone' => 'nullable|string|max:30',

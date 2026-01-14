@@ -17,7 +17,7 @@
             </div>
         </div>
         @endif
-        <div class="col-md-{{ $isSuperAdmin ? '3' : '4' }}">
+        <div class="col-md-{{ $isSuperAdmin ? '3' : '6' }}">
             <div class="card shadow-sm border-0 border-start border-success border-4">
                 <div class="card-body d-flex justify-content-between align-items-center">
                     <div><h6 class="text-muted small text-uppercase">{{ __('admins.clients') }}</h6><h3 class="fw-bold mb-0">{{ $data['totalClients'] }}</h3></div>
@@ -25,19 +25,19 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-{{ $isSuperAdmin ? '3' : '4' }}">
+        {{-- <div class="col-md-{{ $isSuperAdmin ? '3' : '4' }}">
             <div class="card shadow-sm border-0 border-start border-warning border-4">
                 <div class="card-body d-flex justify-content-between align-items-center">
                     <div><h6 class="text-muted small text-uppercase">Leads</h6><h3 class="fw-bold mb-0">{{ $data['totalLeads'] }}</h3></div>
                     <div class="bg-soft-warning p-3 rounded-circle"><i class="ti ti-filter fs-2 text-warning"></i></div>
                 </div>
             </div>
-        </div>
-        <div class="col-md-{{ $isSuperAdmin ? '3' : '4' }}">
+        </div> --}}
+        <div class="col-md-{{ $isSuperAdmin ? '3' : '6' }}">
             <div class="card shadow-sm border-0 border-start border-danger border-4">
                 <div class="card-body d-flex justify-content-between align-items-center">
                     <div><h6 class="text-muted small text-uppercase">{{ __('admins.deals') }}</h6><h3 class="fw-bold mb-0">{{ $data['totalDeals'] }}</h3></div>
-                    <div class="bg-soft-danger p-3 rounded-circle"><i class="ti ti-handshake fs-2 text-danger"></i></div>
+                    <div class="bg-soft-danger p-3 rounded-circle"><i class="ti ti-currency-dollar fs-2 text-danger"></i></div>
                 </div>
             </div>
         </div>

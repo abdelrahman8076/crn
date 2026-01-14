@@ -13,6 +13,8 @@ class BaseDataTable
     protected bool $renderComponents;
     protected ?string $customActionsView;
     protected array $actionProps = []; // Generic props for component
+        protected array $overrides = [];
+
 
     public function __construct(
         Builder $query,
@@ -34,6 +36,12 @@ class BaseDataTable
         $this->actionProps = $props;
         return $this;
     }
+
+public function editColumn($column, callable $callback)
+{
+    $this->overrides[$column] = $callback;
+    return $this;
+}
 
    public function make(Request $request)
 {

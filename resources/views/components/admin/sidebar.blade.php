@@ -1,185 +1,210 @@
-<aside class="left-sidebar @if(app()->getLocale() == 'ar') rtl-sidebar @endif">
-    <div class="sidebar-nav scroll-sidebar">
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<aside class="left-sidebar @if(app()->getLocale() == 'ar') rtl-sidebar @endif shadow-sm">
+    <div class="sidebar-wrapper h-100 d-flex flex-column">
         
-        {{-- Brand Logo Section with Dynamic Badge --}}
-        <div class="brand-logo d-flex align-items-center justify-content-between">
-            <a href="{{ url('/') }}" class="text-nowrap logo-img d-flex align-items-center">
-                <img src="{{ asset('assets/images/logos/logo.svg') }}" alt="Logo" />
-                
-                <div class="ms-2">
-                    @if(Auth::guard('admin')->check())
-                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle fw-bold text-uppercase px-2" style="font-size: 10px;">Portal: Admin</span>
-                    @elseif(Auth::guard('web')->check())
-                        @php
-                            $role = Auth::user()->role?->name ?? 'Staff';
-                            $color = match($role) { 'Manager' => 'primary', 'Sales' => 'success', default => 'secondary' };
-                        @endphp
-                        <span class="badge bg-{{ $color }}-subtle text-{{ $color }} border border-{{ $color }}-subtle fw-bold text-uppercase px-2" style="font-size: 10px;">{{ $role }}</span>
-                    @endif
+        <div class="brand-logo d-flex align-items-center justify-content-between px-4 py-3 border-bottom border-light">
+            <a href="{{ url('/') }}" class="text-decoration-none d-flex align-items-center gap-2">
+                <div class="logo-circle bg-primary bg-gradient rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 32px; height: 32px;">
+                    <i class="ti ti-nebula text-white fs-5"></i>
                 </div>
+                <span class="fw-bold fs-5 text-dark tracking-tight">Nexus<span class="text-primary">CRM</span></span>
             </a>
-            <div class="cursor-pointer d-block d-xl-none" id="sidebarClose" style="font-size: 24px; color: #333;">
-                <i class="ti ti-x"></i>
+            <button class="btn btn-link p-0 text-muted d-xl-none" id="sidebarClose">
+                <i class="ti ti-x fs-6"></i>
+            </button>
+        </div>
+
+        <div class="px-4 py-3 mb-2">
+            <div class="role-card p-2 rounded-3 bg-light border d-flex align-items-center gap-2">
+                @if(Auth::guard('admin')->check())
+                    <div class="bg-danger rounded-circle" style="width: 8px; height: 8px;"></div>
+                    <span class="small fw-bold text-uppercase text-muted" style="letter-spacing: 0.5px;">Portal: Admin</span>
+                @else
+                    @php
+                        $role = Auth::user()->role?->name ?? 'Staff';
+                        $statusColor = match($role) { 'Manager' => 'primary', 'Sales' => 'success', default => 'secondary' };
+                    @endphp
+                    <div class="bg-{{ $statusColor }} rounded-circle" style="width: 8px; height: 8px;"></div>
+                    <span class="small fw-bold text-uppercase text-muted" style="letter-spacing: 0.5px;">{{ $role }}</span>
+                @endif
             </div>
         </div>
 
-        <ul id="sidebarnav">
-            {{-- Global Dashboard --}}
-            <li class="nav-small-cap">
-                <iconify-icon icon="solar:menu-dots-linear" class="nav-small-cap-icon fs-4"></iconify-icon>
-                <span class="hide-menu">{{ __('aside.Main_Menu') }}</span>
-            </li>
-
-            <li class="sidebar-item">
-                <a class="sidebar-link" href="{{ route('admin.dashboard') }}" aria-expanded="false">
-                    <i class="ti ti-atom"></i>
-                    <span class="hide-menu">{{ __('aside.Dashboard') }}</span>
-                </a>
-            </li>
-
-            @php
-                $isAdmin = Auth::guard('admin')->check();
-                $isManager = Auth::guard('web')->check() && Auth::user()->role?->name === 'Manager';
-                $isSales = Auth::guard('web')->check() && Auth::user()->role?->name === 'Sales';
-            @endphp
-
-            {{-- ADMIN ONLY: User Management --}}
-            @if($isAdmin)
-                <li class="nav-small-cap mt-4">
-                    <span class="hide-menu">{{ __('aside.System_Management') }}</span>
-                </li>
-                <li class="sidebar-item">
-                    <a class="sidebar-link" href="{{ route('admin.admin.index') }}" aria-expanded="false">
-                        <i class="ti ti-user-shield"></i>
-                        <span class="hide-menu">{{ __('aside.admin_index') }}</span>
-                    </a>
-                </li>
-                <li class="sidebar-item">
-                    <a class="sidebar-link" href="{{ route('admin.users.index') }}" aria-expanded="false">
-                        <i class="ti ti-users"></i>
-                        <span class="hide-menu">{{ __('aside.Users') }}</span>
-                    </a>
-                </li>
-            @endif
-
-            {{-- SHARED: CRM & Operations (Admin, Manager, Sales) --}}
-            @if($isAdmin || $isManager || $isSales)
-                <li class="nav-small-cap mt-4">
-                    <span class="hide-menu text-uppercase">{{ __('aside.crm_operations') }}</span>
+        <div class="sidebar-nav scroll-sidebar px-3 flex-grow-1">
+            <ul id="sidebarnav" class="list-unstyled">
+                
+                <li class="nav-small-cap text-uppercase text-muted fw-semibold small mb-2 px-2 mt-2">
+                    {{ __('aside.Main_Menu') }}
                 </li>
 
-                {{-- Upload only for Admin & Manager --}}
-                @if($isAdmin || $isManager)
-                <li class="sidebar-item">
-                    <a class="sidebar-link" href="{{ route('admin.clients.uploadForm') }}" aria-expanded="false">
-                        <i class="ti ti-cloud-upload"></i>
-                        <span class="hide-menu">{{ __('aside.admins_clients_upload') }}</span>
-                    </a>
-                </li>
-                @endif
-
-                <li class="sidebar-item">
-                    <a class="sidebar-link" href="{{ route('admin.clients.index') }}" aria-expanded="false">
-                        <i class="ti ti-building"></i>
-                        <span class="hide-menu">{{ __('aside.Clients') }}</span>
+                <li class="sidebar-item mb-1">
+                    <a class="sidebar-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 text-decoration-none @if(Route::is('admin.dashboard')) active @endif" href="{{ route('admin.dashboard') }}">
+                        <i class="ti ti-smart-home fs-5"></i>
+                        <span class="hide-menu">{{ __('aside.Dashboard') }}</span>
                     </a>
                 </li>
 
-                <li class="sidebar-item">
-                    <a class="sidebar-link" href="{{ route('admin.deals.index') }}" aria-expanded="false">
-                        <i class="ti ti-currency-dollar"></i>
-                        <span class="hide-menu">{{ __('aside.Deals') }}</span>
-                    </a>
-                </li>
+                @php
+                    $isAdmin = Auth::guard('admin')->check();
+                    $isManager = Auth::guard('web')->check() && Auth::user()->role?->name === 'Manager';
+                    $isSales = Auth::guard('web')->check() && Auth::user()->role?->name === 'Sales';
+                @endphp
 
-                <li class="sidebar-item">
-                    <a class="sidebar-link" href="{{ route('admin.tasks.index') }}" aria-expanded="false">
-                        <i class="ti ti-checklist"></i>
-                        <span class="hide-menu">{{ __('aside.Tasks') }}</span>
-                    </a>
-                </li>
-            @endif
-
-            {{-- Logout Section --}}
-            <li class="sidebar-item mt-5 border-top pt-3">
                 @if($isAdmin)
-                    <a class="sidebar-link text-danger" href="{{ route('admin.admin.logout') }}">
-                        <i class="ti ti-logout text-danger"></i>
-                        <span class="hide-menu fw-bold">{{ __('aside.Logout') }}</span>
-                    </a>
-                @else
-                    <a class="sidebar-link text-danger" href="{{ route('user.logout') }}" 
-                       onclick="event.preventDefault(); document.getElementById('user-logout-form').submit();">
-                        <i class="ti ti-logout text-danger"></i>
-                        <span class="hide-menu fw-bold">{{ __('aside.Logout') }}</span>
-                    </a>
-                    <form method="POST" action="{{ route('user.logout') }}" id="user-logout-form" class="d-none">@csrf</form>
+                    <li class="nav-small-cap text-uppercase text-muted fw-semibold small mb-2 px-2 mt-4">
+                        {{ __('aside.System_Management') }}
+                    </li>
+                    <li class="sidebar-item mb-1">
+                        <a class="sidebar-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 text-decoration-none" href="{{ route('admin.admin.index') }}">
+                            <i class="ti ti-shield-lock fs-5"></i>
+                            <span class="hide-menu">{{ __('aside.admin_index') }}</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item mb-1">
+                        <a class="sidebar-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 text-decoration-none" href="{{ route('admin.users.index') }}">
+                            <i class="ti ti-users-group fs-5"></i>
+                            <span class="hide-menu">{{ __('aside.Users') }}</span>
+                        </a>
+                    </li>
                 @endif
-            </li>
-        </ul>
+
+                @if($isAdmin || $isManager || $isSales)
+                    <li class="nav-small-cap text-uppercase text-muted fw-semibold small mb-2 px-2 mt-4">
+                        {{ __('aside.crm_operations') }}
+                    </li>
+
+                    @if($isAdmin || $isManager)
+                    <li class="sidebar-item mb-1">
+                        <a class="sidebar-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 text-decoration-none" href="{{ route('admin.clients.uploadForm') }}">
+                            <i class="ti ti-cloud-upload fs-5"></i>
+                            <span class="hide-menu">{{ __('aside.admins_clients_upload') }}</span>
+                        </a>
+                    </li>
+                    @endif
+
+                    <li class="sidebar-item mb-1">
+                        <a class="sidebar-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 text-decoration-none" href="{{ route('admin.clients.index') }}">
+                            <i class="ti ti-building-store fs-5"></i>
+                            <span class="hide-menu">{{ __('aside.Clients') }}</span>
+                        </a>
+                    </li>
+
+                    <li class="sidebar-item mb-1">
+                        <a class="sidebar-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 text-decoration-none" href="{{ route('admin.deals.index') }}">
+                            <i class="ti ti-coin fs-5"></i>
+                            <span class="hide-menu">{{ __('aside.Deals') }}</span>
+                        </a>
+                    </li>
+
+                    <li class="sidebar-item mb-1">
+                        <a class="sidebar-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 text-decoration-none" href="{{ route('admin.tasks.index') }}">
+                            <i class="ti ti-list-check fs-5"></i>
+                            <span class="hide-menu">{{ __('aside.Tasks') }}</span>
+                        </a>
+                    </li>
+                @endif
+            </ul>
+        </div>
+
+        <div class="p-4 border-top mt-auto">
+            @if($isAdmin)
+                <a class="btn btn-outline-danger w-100 d-flex align-items-center justify-content-center gap-2 py-2 rounded-3" href="{{ route('admin.admin.logout') }}">
+                    <i class="ti ti-power fs-5"></i>
+                    <span class="fw-bold">{{ __('aside.Logout') }}</span>
+                </a>
+            @else
+                <a class="btn btn-outline-danger w-100 d-flex align-items-center justify-content-center gap-2 py-2 rounded-3" href="{{ route('user.logout') }}" 
+                   onclick="event.preventDefault(); document.getElementById('user-logout-form-sidebar').submit();">
+                    <i class="ti ti-power fs-5"></i>
+                    <span class="fw-bold">{{ __('aside.Logout') }}</span>
+                </a>
+                <form method="POST" action="{{ route('user.logout') }}" id="user-logout-form-sidebar" class="d-none">@csrf</form>
+            @endif
+        </div>
     </div>
 </aside>
 
 <style>
-    /* Default state (Hidden on mobile) */
+    /* 3. CSS Fixes */
+    .left-sidebar {
+        width: 270px;
+        background: #ffffff;
+        height: 100vh;
+        position: fixed;
+        top: 0;
+        z-index: 2000; /* High Z-index to be over everything */
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-inline-end: 1px solid #f1f5f9;
+    }
+
+    [dir="ltr"] .left-sidebar { left: 0; transform: translateX(0); }
+    [dir="rtl"] .left-sidebar { right: 0; transform: translateX(0); }
+
+    /* Overlay Styling */
+    .sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1999;
+        display: none;
+        backdrop-filter: blur(2px);
+    }
+
+    .sidebar-overlay.active { display: block; }
+
+    /* Links */
+    .sidebar-link { color: #64748b; font-weight: 500; transition: 0.2s; }
+    .sidebar-link:hover { background: #f8fafc; color: #6366f1; }
+    .sidebar-link.active {
+        background: rgba(99, 102, 241, 0.1) !important;
+        color: #6366f1 !important;
+        border-inline-start: 4px solid #6366f1;
+    }
+
+    /* Mobile Logic */
     @media (max-width: 1199.98px) {
-        .left-sidebar {
-            position: fixed;
-            left: -270px; /* Adjust based on your sidebar width */
-            transition: 0.3s ease-in-out;
-            z-index: 9999;
-        }
-
-        /* RTL support for default state */
-        .left-sidebar.rtl-sidebar {
-            left: auto;
-            right: -270px;
-        }
-
-        /* Active state (Shown) */
-        .left-sidebar.active {
-            left: 0;
-        }
-
-        .left-sidebar.rtl-sidebar.active {
-            right: 0;
-        }
+        [dir="ltr"] .left-sidebar { transform: translateX(-100%); }
+        [dir="rtl"] .left-sidebar { transform: translateX(100%); }
+        .left-sidebar.active { transform: translateX(0) !important; }
     }
 
-    #sidebarClose {
-        cursor: pointer;
-        padding: 5px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    /* Prevent body scrolling when sidebar is open on mobile */
-    body.sidebar-active {
-        overflow: hidden;
-    }
+    .role-card { background-color: #f8fafc; }
+    .scroll-sidebar { overflow-y: auto; }
+    body.sidebar-active { overflow: hidden; }
 </style>
 
 <script>
+    // 4. Fixed JavaScript Logic
     document.addEventListener("DOMContentLoaded", function () {
         const sidebar = document.querySelector('.left-sidebar');
-        const openBtn = document.getElementById('sidebarToggle'); // Your trigger button in the header
-        const closeBtn = document.getElementById('sidebarClose');  // The new X button
+        const overlay = document.getElementById('sidebarOverlay');
+        const closeBtn = document.getElementById('sidebarClose');
 
-        // Function to toggle
-        function toggleClasses() {
+        const toggleSidebar = () => {
             sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
             document.body.classList.toggle('sidebar-active');
-        }
+        };
 
-        // // Open/Toggle listener
-        // if (openBtn) {
-        //     openBtn.addEventListener('click', toggleClasses);
-        // }
+        // Listen for hamburger click anywhere on the page (Event Delegation)
+        document.addEventListener('click', function (e) {
+            // Find if the click was on the toggle button or its children
+            const toggleBtn = e.target.closest('#sidebarToggle');
+            
+            if (toggleBtn) {
+                e.preventDefault();
+                toggleSidebar();
+            }
+        });
 
-        // // Close (X) listener
-        // if (closeBtn) {
-        //     closeBtn.addEventListener('click', toggleClasses);
-        // }
+        // Close button within sidebar
+        if (closeBtn) closeBtn.addEventListener('click', toggleSidebar);
+
+        // Close when clicking the overlay
+        if (overlay) overlay.addEventListener('click', toggleSidebar);
     });
 </script>

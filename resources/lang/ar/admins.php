@@ -55,5 +55,6 @@ return [
     'create_button'       => 'إنشاء مسؤول',
     'edit' => 'تعديل',
     'delete' => 'حذف',
+    'dashboard' => 'لوحة التحكم',
 
 ];

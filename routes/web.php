@@ -85,6 +85,7 @@ Route::prefix('admin')
             Route::get('clients/{client}/edit', [ClientsController::class, 'edit'])->name('clients.edit');
             Route::put('clients/{client}', [ClientsController::class, 'update'])->name('clients.update');
             Route::delete('clients/{client}', [ClientsController::class, 'destroy'])->name('clients.destroy');
+            Route::get('/import/template', [ClientsController::class, 'downloadTemplate'])->name('clients.template');
 
             Route::get('tasks/create', [TasksController::class, 'create'])->name('tasks.create');
             Route::post('tasks', [TasksController::class, 'store'])->name('tasks.store');

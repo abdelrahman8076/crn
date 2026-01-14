@@ -5,116 +5,142 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Deal;
-use App\Models\Lead;
 use App\Models\User;
-use Illuminate\Support\Facades\Auth;
+use App\Models\Client;
 use App\Traits\HasAccessFilter;
 use App\Services\DataTables\BaseDataTable;
-use App\Models\Client;
-
-
+use Illuminate\Support\Facades\DB;
 
 class DealsController extends Controller
 {
     use HasAccessFilter;
 
-    // List deals page
+    /**
+     * Display the pipeline overview and deals list.
+     */
     public function index()
     {
-        $columns = ['id', 'deal_name', 'amount', 'stage', 'client.name'];
-        $renderComponents = true; // or false based on your condition
-        $customActionsView = 'components.default-buttons-table'; // full view path
+        // 1. Dashboard Stats (NexusCRM Widgets)
+        $statsQuery = $this->filterAccess(Deal::query(), 'deal');
+        
+        $totalDealsCount   = (clone $statsQuery)->count();
+        $closedDealsValue  = (clone $statsQuery)->where('stage', 'closed-won')->sum('amount');
+        $pendingDealsCount = (clone $statsQuery)->whereIn('stage', ['proposal', 'negotiation'])->count();
 
-        return view('admin.deals.index', compact('columns', 'renderComponents', 'customActionsView'));
+        // 2. DataTable Configuration
+        $columns = ['id', 'deal_name', 'client.name', 'amount', 'stage', 'created_at'];
+        $renderComponents = true;
+        $customActionsView = 'components.default-buttons-table';
+
+        return view('admin.deals.index', compact(
+            'columns', 
+            'renderComponents', 
+            'customActionsView',
+            'totalDealsCount',
+            'closedDealsValue',
+            'pendingDealsCount'
+        ));
     }
 
-    // Datatable / AJAX data
+    /**
+     * Fetch JSON data for DataTable with Nexus styling logic.
+     */
  public function data(Request $request)
 {
-    // Start query with relationships
     $query = Deal::with(['client']);
-
-    // Apply access filter for Deal hierarchy
     $query = $this->filterAccess($query, 'deal');
 
-    // Columns for DataTable
-    $columns = ['id', 'deal_name', 'amount', 'stage', 'client.name'];
+    // Use the custom attributes we created in the Model
+    // Note: 'stage_badge' and 'formatted_amount'
+    $columns = ['id', 'deal_name', 'formatted_amount', 'stage', 'client.name', 'created_at'];
 
-    // Build DataTable
     $service = new BaseDataTable($query, $columns, true, 'components.default-buttons-table');
     $service->setActionProps(['routeName' => 'admin.deals']);
 
     return $service->make($request);
 }
 
-    // Show create form
+    /**
+     * Show form to create a new deal.
+     */
     public function create()
     {
-        $clients = $this->getAccessibleClients(); // only clients the user can access
-        $users = User::all();
+        $clients = $this->getAccessibleClients();
+        $users   = User::all();
 
         return view('admin.deals.create', compact('clients', 'users'));
     }
 
-    // Store deal
+    /**
+     * Store a newly created deal.
+     */
     public function store(Request $request)
     {
-        $request->validate([
-            'deal_name' => 'required|string|max:255',
-            'amount'    => 'required|numeric',
-            'stage'     => 'required|string|in:proposal,negotiation,closed-won,closed-lost',
+        $validated = $request->validate([
+            'deal_name'   => 'required|string|max:255',
+            'amount'      => 'required|numeric|min:0',
+            'stage'       => 'required|string|in:proposal,negotiation,closed-won,closed-lost',
             'client_id'   => 'required|exists:clients,id',
             'assigned_to' => 'nullable|exists:users,id',
         ]);
 
-        $deal = Deal::create($request->all());
+        Deal::create($validated);
 
         return redirect()->route('admin.deals.index')
-            ->with('success', __('Deal created successfully.'));
+            ->with('success', __('deals.create_success_msg') ?? 'Deal created successfully.');
     }
 
-    // Show edit form
+    /**
+     * Show form to edit a deal.
+     */
     public function edit($id)
     {
-        $deal = Deal::findOrFail($id);
-        $clients = $this->getAccessibleClients(); // only clients the user can access
-        $users = User::all();
+        $deal    = Deal::findOrFail($id);
+        $clients = $this->getAccessibleClients();
+        $users   = User::all();
       
         return view('admin.deals.edit', compact('deal', 'clients', 'users'));
     }
 
-    // Update deal
+    /**
+     * Update an existing deal.
+     */
     public function update(Request $request, $id)
     {
         $deal = Deal::findOrFail($id);
 
-        $request->validate([
-            'deal_name' => 'required|string|max:255',
-            'amount'    => 'required|numeric',
-            'stage'     => 'required|string|in:proposal,negotiation,closed-won,closed-lost',
+        $validated = $request->validate([
+            'deal_name'   => 'required|string|max:255',
+            'amount'      => 'required|numeric|min:0',
+            'stage'       => 'required|string|in:proposal,negotiation,closed-won,closed-lost',
             'client_id'   => 'required|exists:clients,id',
             'assigned_to' => 'nullable|exists:users,id',
         ]);
 
-        // Capture previous stage and amount before update
-        $previousStage = $deal->getOriginal('stage');
-        $previousAmount = $deal->getOriginal('amount');
+        $deal->update($validated);
 
-        $deal->update($request->all());
-
-        // Model observers will handle syncing targets
         return redirect()->route('admin.deals.index')
-            ->with('success', __('Deal updated successfully.'));
+            ->with('success', __('deals.update_success_msg') ?? 'Deal updated successfully.');
     }
 
-    // Delete deal
+    /**
+     * Remove a deal from the database.
+     */
     public function destroy($id)
     {
         $deal = Deal::findOrFail($id);
-
         $deal->delete();
 
         return redirect()->route('admin.deals.index')
-            ->with('success', __('Deal deleted successfully.'));
+            ->with('success', __('deals.delete_success_msg') ?? 'Deal deleted successfully.');
+    }
+
+    /**
+     * Internal helper for role-based client selection.
+     */
+    protected function getAccessibleClients()
+    {
+        $query = Client::query();
+        return $this->filterAccess($query, 'client')->orderBy('name')->get();
     }
 }

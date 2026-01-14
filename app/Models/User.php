@@ -92,14 +92,14 @@ class User extends Authenticatable
     }
 
     public function targets()
-{
-    return $this->hasMany(Target::class);
-}
+    {
+        return $this->hasMany(Target::class);
+    }
 
-public function activeTarget()
-{
-    return $this->hasOne(Target::class)->where('is_active', true);
-}
+    public function activeTarget()
+    {
+        return $this->hasOne(Target::class)->where('is_active', true);
+    }
 
     // User adds many notes
     // public function notes()
@@ -119,6 +119,12 @@ public function activeTarget()
     {
         return $this->hasMany(User::class, 'manager_id'); // Adjust 'manager_id' as your DB column
     }
+    public function hasRole(string $role): bool
+    {
+        // Option A: If you have a 'role' relationship with a 'name' column
+        return $this->role && $this->role->name === $role;
 
-
+        // Option B: If you just have a 'role' string column on the users table
+        // return $this->role === $role;
+    }
 }

@@ -26,6 +26,9 @@ class Deal extends Model
     {
         return $this->morphMany(Note::class,'related');
     }
+     protected $casts = [
+        'created_at' => 'date:Y-m-d',
+    ];
 
     /**
      * Sync this deal with the responsible user's active target.
@@ -142,5 +145,28 @@ class Deal extends Model
             }
         });
     }
+    /**
+ * Get the stage formatted as a Nexus Badge HTML.
+ */
+public function getStageBadgeAttribute(): string
+{
+    $class = match($this->stage) {
+        'closed-won'  => 'success',
+        'closed-lost' => 'danger',
+        'negotiation' => 'warning',
+        'proposal'    => 'info',
+        default       => 'secondary'
+    };
+    $label = __("deals.{$this->stage}");
+    return "<span class='badge bg-soft-{$class} text-{$class} px-3 py-2 rounded-pill'>{$label}</span>";
+}
+
+/**
+ * Get the amount formatted as currency.
+ */
+public function getFormattedAmountAttribute(): string
+{
+    return '<span class="fw-bold text-dark">$' . number_format($this->amount, 2) . '</span>';
+}
 }
 

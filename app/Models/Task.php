@@ -9,11 +9,11 @@ class Task extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['title','due_date','status','assigned_to','description'];
- protected $casts = [
-    'due_date' => 'date:Y-m-d',
-    'created_at'=> 'date:Y-m-d',
-];
+    protected $fillable = ['title', 'due_date', 'status', 'assigned_to', 'description'];
+    protected $casts = [
+        'due_date' => 'date:Y-m-d',
+        'created_at' => 'date:Y-m-d',
+    ];
 
 
 
@@ -24,6 +24,12 @@ class Task extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class,'assigned_to');
+        return $this->belongsTo(User::class, 'assigned_to');
     }
+    /**
+     * Generates the HTML for the Nexus Status Badge
+     */
+    // Add this line to include the accessor in JSON/Array outputs
+
+
 }

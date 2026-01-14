@@ -37,6 +37,7 @@ return [
     'clients'            => 'Clients',
     'leads'              => 'Leads',
     'deals'              => 'Deals',
+    'dashboard' => 'Dashboard',
 
     // Dashboard: Team / Targets
     'team_performance_monitor' => 'Team Performance Monitor',
