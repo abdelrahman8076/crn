@@ -39,7 +39,6 @@
                 <div class="mb-3">
                     <div class="d-flex justify-content-between">
                         <label class="form-label small fw-semibold text-secondary">{{ __('admins.password') }}</label>
-                        <a href="#" class="small text-decoration-none text-orange-600">{{ __('admins.forgot_password') }}</a>
                     </div>
                     <div class="input-group">
                         <span class="input-group-text bg-white border-end-0 text-muted">
@@ -51,10 +50,7 @@
                     </div>
                 </div>
 
-                <div class="mb-4 d-flex align-items-center">
-                    <input type="checkbox" name="remember" id="remember" class="form-check-input border-secondary me-2">
-                    <label for="remember" class="small text-secondary cursor-pointer">{{ __('admins.remember_me') }}</label>
-                </div>
+           
 
                 <button type="submit" class="btn btn-dark w-100 py-2 fw-bold rounded-3 shadow-sm transition-transform hover-scale">
                     {{ __('admins.login_btn') }}
@@ -86,4 +82,47 @@
         box-shadow: none;
     }
     .cursor-pointer { cursor: pointer; }
+
+    /* RTL Fixes for Input Groups - Fix semi-circle border-radius issues */
+    [dir="rtl"] .input-group > .input-group-text:first-child {
+        border-top-left-radius: 0 !important;
+        border-bottom-left-radius: 0 !important;
+        border-top-right-radius: var(--bs-border-radius, 0.375rem) !important;
+        border-bottom-right-radius: var(--bs-border-radius, 0.375rem) !important;
+    }
+
+    [dir="rtl"] .input-group > .form-control:not(:first-child),
+    [dir="rtl"] .input-group > .form-select:not(:first-child) {
+        border-top-right-radius: 0 !important;
+        border-bottom-right-radius: 0 !important;
+        border-top-left-radius: var(--bs-border-radius, 0.375rem) !important;
+        border-bottom-left-radius: var(--bs-border-radius, 0.375rem) !important;
+    }
+
+    /* Fix border-end-0 and border-start-0 for RTL */
+    [dir="rtl"] .border-end-0 {
+        border-left: 0 !important;
+        border-right: 1px solid var(--bs-border-color, #dee2e6) !important;
+    }
+
+    [dir="rtl"] .border-start-0 {
+        border-right: 0 !important;
+        border-left: 1px solid var(--bs-border-color, #dee2e6) !important;
+    }
+
+    /* Ensure input-group-text border-end-0 works correctly in RTL */
+    [dir="rtl"] .input-group-text.border-end-0 {
+        border-left: 0 !important;
+    }
+
+    /* Ensure form-control border-start-0 works correctly in RTL */
+    [dir="rtl"] .form-control.border-start-0 {
+        border-right: 0 !important;
+    }
+
+    /* Fix padding adjustments for RTL input groups */
+    [dir="rtl"] .input-group > .form-control.border-start-0.ps-0 {
+        padding-right: 0 !important;
+        padding-left: 0.75rem !important;
+    }
 </style>

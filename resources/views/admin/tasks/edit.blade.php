@@ -2,11 +2,10 @@
 
 @section('content')
 @php
-    $user = auth()->user();
-    $isAssignee = ($user->id == $task->assigned_to);
+$user = auth()->guard('admin')->user() ?? auth()->user();    $isAssignee = ($user->id == $task->assigned_to);
     
     // Safety check for role (matches your earlier hasRole fix)
-    $isAdmin = $user->role && $user->role->name === 'admin'; 
+    $isAdmin = $user->role && auth()->guard('admin')->check(); 
     $isCreator = ($user->id == $task->created_by);
     
     // Determine if the general form is readonly

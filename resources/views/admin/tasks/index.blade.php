@@ -140,5 +140,11 @@
         letter-spacing: 0.05em;
         border-bottom: 1px solid #edf2f7;
     }
+    
+    [data-bs-theme="dark"] .table thead th {
+        background-color: #334155 !important;
+        color: #e2e8f0 !important;
+        border-bottom-color: #475569 !important;
+    }
 </style>
 @endsection

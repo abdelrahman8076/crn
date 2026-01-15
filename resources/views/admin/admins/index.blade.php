@@ -72,9 +72,18 @@
         padding: 12px 20px;
     }
 
+    [data-bs-theme="dark"] .nexus-datatable-container table.dataTable thead th {
+        background-color: #334155 !important;
+        color: #e2e8f0 !important;
+    }
+
     /* Row hover effect */
     .nexus-datatable-container table.dataTable tbody tr:hover {
         background-color: #fcfdfe !important;
+    }
+
+    [data-bs-theme="dark"] .nexus-datatable-container table.dataTable tbody tr:hover {
+        background-color: #334155 !important;
     }
 
     /* Style DataTables Search & Pagination to match Nexus Blue */
@@ -84,10 +93,34 @@
         padding: 6px 12px !important;
     }
 
+    [data-bs-theme="dark"] .dataTables_filter input {
+        background-color: #0f172a !important;
+        border-color: #334155 !important;
+        color: #e2e8f0 !important;
+    }
+
     .page-item.active .page-link {
         background-color: #6366f1 !important;
         border-color: #6366f1 !important;
         border-radius: 6px;
+    }
+
+    [data-bs-theme="dark"] .page-item.active .page-link {
+        background-color: #6366f1 !important;
+        border-color: #6366f1 !important;
+        color: #fff !important;
+    }
+
+    [data-bs-theme="dark"] .page-link {
+        color: #e2e8f0 !important;
+        background-color: #1e293b !important;
+        border-color: #334155 !important;
+    }
+
+    [data-bs-theme="dark"] .page-link:hover {
+        color: #e2e8f0 !important;
+        background-color: #334155 !important;
+        border-color: #475569 !important;
     }
 </style>
 @endsection

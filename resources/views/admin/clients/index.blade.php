@@ -74,9 +74,19 @@
         border-radius: 8px;
         padding: 6px 12px;
     }
+    [data-bs-theme="dark"] .dataTables_wrapper .dataTables_filter input {
+        background-color: #0f172a !important;
+        border-color: #334155 !important;
+        color: #e2e8f0 !important;
+    }
     .dataTables_wrapper .dataTables_length select {
         border: 1px solid #e9ecef;
         border-radius: 8px;
+    }
+    [data-bs-theme="dark"] .dataTables_wrapper .dataTables_length select {
+        background-color: #0f172a !important;
+        border-color: #334155 !important;
+        color: #e2e8f0 !important;
     }
     .table thead th {
         background-color: #f8f9fa;
@@ -86,6 +96,11 @@
         font-weight: 700;
         color: #6c757d;
         border-bottom-width: 1px;
+    }
+    [data-bs-theme="dark"] .table thead th {
+        background-color: #334155 !important;
+        color: #e2e8f0 !important;
+        border-bottom-color: #475569 !important;
     }
 </style>
 @endsection

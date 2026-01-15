@@ -119,6 +119,13 @@
         padding: 0.4rem 0.6rem;
     }
     
+    [data-bs-theme="dark"] .dataTables_wrapper .dataTables_length select,
+    [data-bs-theme="dark"] .dataTables_wrapper .dataTables_filter input {
+        background-color: #0f172a !important;
+        border-color: #334155 !important;
+        color: #e2e8f0 !important;
+    }
+    
     .table thead th {
         background-color: #f9fafb;
         text-transform: uppercase;
@@ -127,6 +134,12 @@
         color: #6b7280;
         font-weight: 700;
         border-bottom-width: 1px;
+    }
+    
+    [data-bs-theme="dark"] .table thead th {
+        background-color: #334155 !important;
+        color: #e2e8f0 !important;
+        border-bottom-color: #475569 !important;
     }
 </style>
 @endsection

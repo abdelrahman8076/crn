@@ -132,16 +132,5 @@
         border-color: #e2e8f0;
         color: #64748b;
     }
-
-    /* Style for AR/RTL support without messy inline styles */
-    [dir="rtl"] .input-group > :not(:first-child):not(.dropdown-menu):not(.valid-tooltip):not(.valid-feedback):not(.invalid-tooltip):not(.invalid-feedback) {
-        border-top-right-radius: 0;
-        border-bottom-right-radius: 0;
-        border-top-left-radius: 0.5rem;
-        border-bottom-left-radius: 0.5rem;
-        border-right-width: 0;
-        border-left-width: 1px;
-        padding-right: 0.75rem;
-    }
 </style>
 @endsection

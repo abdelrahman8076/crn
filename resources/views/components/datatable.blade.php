@@ -14,6 +14,19 @@
         overflow: hidden;
     }
     
+    [data-bs-theme="dark"] .table-container {
+        background: #1e293b !important;
+        border-color: #334155 !important;
+    }
+
+    [data-bs-theme="dark"] .table-container.shadow-sm {
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3) !important;
+    }
+
+    [data-bs-theme="dark"] .table-container.border {
+        border-color: #334155 !important;
+    }
+    
     #datatable {
         border-collapse: separate !important;
         border-spacing: 0 !important;
@@ -31,12 +44,36 @@
         border-bottom: 1px solid #e5e7eb;
     }
 
+    [data-bs-theme="dark"] #datatable thead th {
+        background-color: #334155 !important;
+        color: #e2e8f0 !important;
+        border-bottom-color: #475569 !important;
+    }
+
     #datatable tbody td {
         padding: 16px 20px;
         vertical-align: middle;
         color: #1f2937;
         font-size: 0.875rem;
         border-bottom: 1px solid #f3f4f6;
+    }
+
+    [data-bs-theme="dark"] #datatable tbody td {
+        color: #e2e8f0 !important;
+        border-bottom-color: #334155 !important;
+        background-color: #1e293b !important;
+    }
+
+    [data-bs-theme="dark"] #datatable tbody tr {
+        background-color: #1e293b !important;
+    }
+
+    [data-bs-theme="dark"] #datatable tbody tr:hover {
+        background-color: #334155 !important;
+    }
+
+    [data-bs-theme="dark"] #datatable tbody tr:hover td {
+        background-color: #334155 !important;
     }
 
     /* Nexus Soft UI Badges - Explicit Styles to force rendering */
@@ -84,6 +121,12 @@
             padding: 10px 0;
             background: #fff;
         }
+
+        [data-bs-theme="dark"] #datatable tr {
+            border-color: #334155 !important;
+            background: #1e293b !important;
+        }
+
         #datatable td {
             text-align: right; 
             padding: 12px 15px 12px 45% !important;
@@ -91,6 +134,12 @@
             border-bottom: 1px solid #f3f4f6;
             min-height: 45px;
         }
+
+        [data-bs-theme="dark"] #datatable td {
+            border-bottom-color: #334155 !important;
+            color: #e2e8f0 !important;
+        }
+
         #datatable td:before {
             content: attr(data-label);
             position: absolute;
@@ -102,11 +151,20 @@
             color: #9ca3af;
             font-size: 0.8rem;
         }
+
+        [data-bs-theme="dark"] #datatable td:before {
+            color: #cbd5e1 !important;
+        }
+
         #datatable td:last-child {
             text-align: center;
             background: #f9fafb;
             border-bottom: none;
             padding: 15px !important;
+        }
+
+        [data-bs-theme="dark"] #datatable td:last-child {
+            background: #334155 !important;
         }
         #datatable td:last-child:before { display: none; }
     }
