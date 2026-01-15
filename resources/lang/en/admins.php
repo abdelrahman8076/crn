@@ -38,7 +38,7 @@ return [
     'leads'              => 'Leads',
     'deals'              => 'Deals',
     'dashboard' => 'Dashboard',
-
+    'no_team_data' => 'No individual team member stats available.',
     // Dashboard: Team / Targets
     'team_performance_monitor' => 'Team Performance Monitor',
     'member_name'              => 'Member Name',

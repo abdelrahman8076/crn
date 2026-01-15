@@ -31,7 +31,7 @@
                 <div class="avatar-sm bg-primary rounded-circle d-flex align-items-center justify-content-center text-white fw-bold">
                     {{ substr($user->name ?? 'N', 0, 1) }}
                 </div>
-                <i class="ti ti-chevron-down text-white small d-none d-md-block"></i>
+                {{-- <i class="ti ti-chevron-down text-white small d-none d-md-block"></i> --}}
             </a>
             <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-3 animate-up">
                 <li><h6 class="dropdown-header">{{ $user->name ?? 'User' }}</h6></li>
