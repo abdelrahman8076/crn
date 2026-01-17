@@ -88,6 +88,9 @@ class ClientsController extends Controller
 
         $service->setActionProps([
             'routeName' => 'admin.clients',
+            'deleteFlag' => true,
+            'checkNullFields' => ['assigned_to_sale', 'assigned_to_manager']
+
         ]);
 
         return $service->make($request);
@@ -198,11 +201,19 @@ class ClientsController extends Controller
      */
     public function destroy($id)
     {
-        Client::findOrFail($id)->delete();
+        $client = Client::findOrFail($id);
+
+        // 1. Remove the relationship links first
+        $client->assigned_to_sale = null;
+        $client->assigned_to_manager = null;
+        $client->save();
+
+        // 2. Now delete the client
+        $client->delete();
 
         return redirect()
             ->route('admin.clients.index')
-            ->with('success', __('Client deleted successfully.'));
+            ->with('success', __('Client removed and unassigned successfully.'));
     }
 
     /**

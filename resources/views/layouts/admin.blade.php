@@ -12,6 +12,18 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
     <style>
+        /* Ensures the datalist input matches your theme exactly */
+input[list].form-control {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%236c757d' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 16px 12px;
+}
+
+/* Removes the default arrow in some browsers so it doesn't double-up */
+input::-webkit-calendar-picker-indicator {
+    opacity: 0;
+}
         :root {
             --nexus-primary: #0f172a; 
             --nexus-accent: #6366f1;  
@@ -698,5 +710,6 @@
             });
         })();
     </script>
+ 
 </body>
 </html>

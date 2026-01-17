@@ -79,23 +79,25 @@
                                 @error('phone') <div class="text-danger extra-small mt-1">{{ $message }}</div> @enderror
                             </div>
 
-                            {{-- Status Selection --}}
-                            <div class="col-md-6">
-                                <label for="status" class="form-label fw-semibold small">{{ __('clients.status') }}</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light border-end-0"><i class="ti ti-settings-automation"></i></span>
-                                    <select class="form-select border-start-0 @error('status') is-invalid @enderror" id="status" name="status">
-                                        <option value="">{{ __('clients.select_status') }}</option>
-                                        <option value="potential" {{ old('status') == 'potential' ? 'selected' : '' }}>1 - Potential</option>
-                                        <option value="not_potential" {{ old('status') == 'not_potential' ? 'selected' : '' }}>2 - Not Potential</option>
-                                        <option value="hot_case" {{ old('status') == 'hot_case' ? 'selected' : '' }}>3 - Hot Case</option>
-                                        <option value="closed_deal" {{ old('status') == 'closed_deal' ? 'selected' : '' }}>4 - Closed Deal</option>
-                                        <option value="no_answer" {{ old('status') == 'no_answer' ? 'selected' : '' }}>5 - No Answer</option>
-                                        <option value="meeting_done" {{ old('status') == 'meeting_done' ? 'selected' : '' }}>6 - Meeting Done</option>
-                                    </select>
-                                </div>
-                                @error('status') <div class="text-danger extra-small mt-1">{{ $message }}</div> @enderror
-                            </div>
+                        {{-- Status Selection --}}
+<div class="col-md-6">
+    <label for="status" class="form-label fw-semibold small">{{ __('clients.status') }}</label>
+    <div class="input-group">
+        <span class="input-group-text bg-light border-end-0"><i class="ti ti-settings-automation"></i></span>
+        <select class="form-select border-start-0 @error('status') is-invalid @enderror" id="status" name="status">
+            {{-- Setting "New" as the default if old('status') is empty --}}
+            <option value="new" {{ old('status', 'new') == 'new' ? 'selected' : '' }}>0 - New</option>
+            
+            <option value="potential" {{ old('status') == 'potential' ? 'selected' : '' }}>1 - Potential</option>
+            <option value="not_potential" {{ old('status') == 'not_potential' ? 'selected' : '' }}>2 - Not Potential</option>
+            <option value="hot_case" {{ old('status') == 'hot_case' ? 'selected' : '' }}>3 - Hot Case</option>
+            <option value="closed_deal" {{ old('status') == 'closed_deal' ? 'selected' : '' }}>4 - Closed Deal</option>
+            <option value="no_answer" {{ old('status') == 'no_answer' ? 'selected' : '' }}>5 - No Answer</option>
+            <option value="meeting_done" {{ old('status') == 'meeting_done' ? 'selected' : '' }}>6 - Meeting Done</option>
+        </select>
+    </div>
+    @error('status') <div class="text-danger extra-small mt-1">{{ $message }}</div> @enderror
+</div>
 
                             {{-- Section 2: Business & Assignment --}}
                             <div class="col-12 mt-5">
@@ -110,11 +112,30 @@
                                     name="company" value="{{ old('company') }}" placeholder="Company Name">
                             </div>
 
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold small">{{ __('clients.source') }}</label>
-                                <input type="text" class="form-control @error('source') is-invalid @enderror" 
-                                    name="source" value="{{ old('source') }}" placeholder="e.g. Facebook, Cold Call">
-                            </div>
+ <div class="col-md-6">
+    <label class="form-label fw-semibold small">{{ __('clients.source') }}</label>
+    
+    {{-- This input behaves like a normal text box but shows a dropdown --}}
+    <input type="text" 
+           name="source" 
+           list="sourceOptions" 
+           class="form-control @error('source') is-invalid @enderror" 
+           value="{{ old('source', $client->source ?? '') }}" 
+           placeholder="{{ __('Select or type...') }}"
+           autocomplete="off">
+
+    {{-- These are the suggestions --}}
+    <datalist id="sourceOptions">
+        <option value="Facebook">
+        <option value="Google">
+        <option value="Website">
+        <option value="Referral">
+    </datalist>
+
+    @error('source')
+        <div class="invalid-feedback">{{ $message }}</div>
+    @enderror
+</div>
 
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold small">{{ __('clients.assigned_user') }}</label>
@@ -228,4 +249,5 @@
         })
     });
 </script>
+
 @endsection

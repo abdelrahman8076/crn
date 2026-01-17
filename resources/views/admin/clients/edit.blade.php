@@ -124,11 +124,33 @@
                                     name="company" value="{{ old('company', $client->company) }}">
                             </div>
 
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold small">{{ __('clients.source') }}</label>
-                                <input type="text" class="form-control @error('source') is-invalid @enderror" 
-                                    name="source" value="{{ old('source', $client->source) }}">
-                            </div>
+<div class="col-md-6">
+    <label class="form-label fw-semibold small">{{ __('clients.source') }}</label>
+    
+    {{-- 
+        onfocus: Shows the dropdown list immediately when clicked
+        onmousedown: Fixes a bug in some browsers to ensure the list triggers
+    --}}
+    <input type="text" 
+           name="source" 
+           list="sourceOptions" 
+           class="form-control @error('source') is-invalid @enderror" 
+           value="{{ old('source', $client->source ?? '') }}" 
+           placeholder="{{ __('Select or type...') }}"
+           autocomplete="off"
+           onfocus="this.value = ''; this.value = '{{ old('source', $client->source ?? '') }}'"
+>
+    <datalist id="sourceOptions">
+        <option value="Facebook">
+        <option value="Google">
+        <option value="Website">
+        <option value="Referral">
+    </datalist>
+
+    @error('source')
+        <div class="invalid-feedback">{{ $message }}</div>
+    @enderror
+</div>
 
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold small">{{ __('clients.assigned_user') }}</label>
@@ -215,4 +237,5 @@
         tooltipTriggerList.map(function (el) { return new bootstrap.Tooltip(el) });
     });
 </script>
+
 @endsection

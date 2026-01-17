@@ -32,17 +32,32 @@
 @endif
 
 {{-- 🗑️ Delete Button --}}
-    {{-- Condition: Must be admin, deleteFlag must be true, AND model ID must NOT match current logged-in admin ID --}}
-    @if(auth('admin')->check() && $deleteFlag == true && auth('admin')->id() !== $id)
-        <form action="{{ route($deleteRoute, $id) }}" method="POST" style="display:inline;">
-            @csrf
-            @method('DELETE')
-            <button type="submit" class="btn btn-sm btn-outline-danger ms-2" 
-                    onclick="return confirm('{{ __('admin.confirm_delete') }}')">
-                <i class="bi bi-trash"></i> {{ __('admins.delete') }}
-            </button>
-        </form>
-    @endif
+@php
+    $canDelete = true;
+
+    // Logic: Check if there are specific fields that must be empty
+    if (isset($checkNullFields) && is_array($checkNullFields)) {
+        foreach ($checkNullFields as $field) {
+            // If the field on the model has a value, we cannot delete
+            if (!empty($item->$field)) {
+                $canDelete = false;
+                break;
+            }
+        }
+    }
+@endphp
+
+{{-- Final Condition --}}
+@if(auth('admin')->check() && ($deleteFlag ?? false) && auth('admin')->id() !== $id && $canDelete)
+    <form action="{{ route($deleteRoute, $id) }}" method="POST" style="display:inline;">
+        @csrf
+        @method('DELETE')
+        <button type="submit" class="btn btn-sm btn-outline-danger ms-2" 
+                onclick="return confirm('{{ __('admin.confirm_delete') }}')">
+            <i class="bi bi-trash"></i> {{ __('admins.delete') }}
+        </button>
+    </form>
+@endif
 
     {{-- 🚫 Deactivate Button --}}
     @if ($hasDeactivate && $inactiveRoute && Route::has($inactiveRoute))

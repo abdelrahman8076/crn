@@ -6,7 +6,7 @@ return [
     'Dashboard'           => 'Dashboard',
     'Users'               => 'Users',
     'Roles'               => 'Roles',
-    'Clients'             => 'Clients',
+    'Clients'             => 'Leass',
     'Leads'               => 'Leads',
     'Deals'               => 'Deals',
     'Tasks'               => 'Tasks',
@@ -14,7 +14,7 @@ return [
     'Apps'                => 'Apps',
     'Main_Menu'             => 'Main Menu',
     'crm_operations'        => 'CRM & Operations',
-    'admins_clients_upload' => 'Import Clients (CSV)',
+    'admins_clients_upload' => 'Import Leads (CSV)',
 
     // Admin routes / actions
     'admin_index'         => 'Admins',
