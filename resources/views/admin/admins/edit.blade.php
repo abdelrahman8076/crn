@@ -86,6 +86,85 @@
                                 @enderror
                             </div>
 
+                            <div class="col-md-6">
+                                <label for="password_confirmation" class="form-label fw-semibold text-muted small text-uppercase">
+                                    Confirm Password
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0"><i class="ti ti-lock text-muted"></i></span>
+                                    <input type="password" name="password_confirmation" id="password_confirmation" 
+                                           class="form-control border-start-0 ps-0" 
+                                           placeholder="Leave blank to keep current">
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <hr class="my-4">
+                                <h6 class="fw-bold text-primary mb-3">Roles & Permissions</h6>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="position_id" class="form-label fw-semibold text-muted small text-uppercase">
+                                    Position (Hierarchy)
+                                </label>
+                                <select name="position_id" id="position_id" class="form-select @error('position_id') is-invalid @enderror">
+                                    <option value="">No Position</option>
+                                    @foreach($positions as $position)
+                                        <option value="{{ $position->id }}" {{ old('position_id', $admin->position_id) == $position->id ? 'selected' : '' }}>
+                                            {{ str_repeat('— ', $position->level) }}{{ $position->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <small class="text-muted">Determines hierarchy level</small>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="role_ids" class="form-label fw-semibold text-muted small text-uppercase">
+                                    Roles
+                                </label>
+                                <select name="role_ids[]" id="role_ids" class="form-select" multiple size="4">
+                                    @foreach($roles as $role)
+                                        <option value="{{ $role->id }}" {{ in_array($role->id, old('role_ids', $adminRoleIds)) ? 'selected' : '' }}>
+                                            {{ $role->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <small class="text-muted">Hold Ctrl/Cmd to select multiple</small>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-semibold text-muted small text-uppercase">
+                                    Direct Permissions
+                                </label>
+                                <div class="border rounded p-3" style="max-height: 250px; overflow-y: auto;">
+                                    @php
+                                        $permissionGroups = $permissions->groupBy('group');
+                                    @endphp
+                                    @foreach($permissionGroups as $group => $groupPermissions)
+                                        <div class="mb-3">
+                                            <strong class="text-primary d-block mb-2">{{ ucfirst($group) }}</strong>
+                                            <div class="row g-2">
+                                                @foreach($groupPermissions as $permission)
+                                                    <div class="col-md-6 col-lg-4">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" 
+                                                                   name="permission_ids[]" 
+                                                                   value="{{ $permission->id }}" 
+                                                                   id="admin_edit_perm_{{ $permission->id }}"
+                                                                   {{ in_array($permission->id, old('permission_ids', $adminPermissionIds)) ? 'checked' : '' }}>
+                                                            <label class="form-check-label small" for="admin_edit_perm_{{ $permission->id }}">
+                                                                {{ str_replace($group . '.', '', $permission->name) }}
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                                <small class="text-muted">Direct permissions override role permissions</small>
+                            </div>
+
                             <div class="col-12 mt-5">
                                 <hr class="text-light">
                                 <div class="d-flex justify-content-between align-items-center">

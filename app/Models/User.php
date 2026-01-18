@@ -2,20 +2,22 @@
 
 namespace App\Models;
 
+use App\Traits\HasPermissions;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasPermissions;
 
     protected $fillable = [
         'name',
         'email',
         'password',
         'role_id',
-        'manager_id', // <-- used for sales team under managers
+        'manager_id', // <-- used for sales team under managers (legacy)
+        'position_id', // <-- new hierarchy-based position
     ];
     protected $casts = [
         'created_at' => 'date:Y-m-d',
@@ -119,12 +121,12 @@ class User extends Authenticatable
     {
         return $this->hasMany(User::class, 'manager_id'); // Adjust 'manager_id' as your DB column
     }
-    public function hasRole(string $role): bool
+    /**
+     * Legacy hasRole method - now uses trait method
+     * Kept for backward compatibility
+     */
+    public function hasRoleLegacy(string $role): bool
     {
-        // Option A: If you have a 'role' relationship with a 'name' column
         return $this->role && $this->role->name === $role;
-
-        // Option B: If you just have a 'role' string column on the users table
-        // return $this->role === $role;
     }
 }

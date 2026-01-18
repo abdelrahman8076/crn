@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Target;
 use App\Models\Role;
+use App\Models\Position;
+use App\Models\Permission;
 use Illuminate\Http\Request;
 use App\Services\DataTables\BaseDataTable;
 use App\Traits\HasAccessFilter;
@@ -46,7 +48,9 @@ class UsersController extends Controller
     {
         $roles = Role::all();
         $users = User::all();
-        return view('admin.users.create', compact('roles', 'users'));
+        $positions = Position::orderBy('level')->orderBy('sort_order')->get();
+        $permissions = Permission::orderBy('group')->orderBy('name')->get();
+        return view('admin.users.create', compact('roles', 'users', 'positions', 'permissions'));
     }
 public function store(Request $request)
 {
@@ -54,8 +58,13 @@ public function store(Request $request)
         'name' => 'required|string|max:255',
         'email' => 'required|email|unique:users,email',
         'password' => 'required|min:6|confirmed',
-        'role_id' => 'required|exists:roles,id',
+        'role_id' => 'required|exists:roles,id', // Legacy role_id for backward compatibility
+        'role_ids' => 'nullable|array',
+        'role_ids.*' => 'exists:roles,id',
+        'position_id' => 'nullable|exists:positions,id',
         'manager_id' => 'nullable|exists:users,id',
+        'permission_ids' => 'nullable|array',
+        'permission_ids.*' => 'exists:permissions,id',
         'targets.*.amount' => 'nullable|integer|min:1',
         'targets.*.period' => 'required_with:targets.*.amount|string',
     ]);
@@ -65,9 +74,23 @@ public function store(Request $request)
             'name' => $request->name,
             'email' => $request->email,
             'password' => bcrypt($request->password),
-            'role_id' => $request->role_id,
+            'role_id' => $request->role_id, // Keep for backward compatibility
             'manager_id' => $request->manager_id,
+            'position_id' => $request->position_id,
         ]);
+
+        // Assign multiple roles using new system
+        if ($request->has('role_ids') && !empty($request->role_ids)) {
+            $user->syncRoles($request->role_ids);
+        } else {
+            // Fallback: assign single role from role_id
+            $user->assignRole($request->role_id);
+        }
+
+        // Assign direct permissions
+        if ($request->has('permission_ids') && !empty($request->permission_ids)) {
+            $user->syncPermissions($request->permission_ids);
+        }
 
         if ($request->has('targets')) {
             foreach ($request->targets as $targetData) {
@@ -95,8 +118,14 @@ public function store(Request $request)
 
         $roles = Role::all();
         $users = User::where('id', '!=', $user->id)->get();
+        $positions = Position::orderBy('level')->orderBy('sort_order')->get();
+        $permissions = Permission::orderBy('group')->orderBy('name')->get();
+        
+        // Get user's assigned roles and permissions
+        $userRoleIds = $user->modelRoles()->pluck('role_id')->toArray();
+        $userPermissionIds = $user->modelPermissions()->pluck('permission_id')->toArray();
 
-        return view('admin.users.edit', compact('user', 'roles', 'users'));
+        return view('admin.users.edit', compact('user', 'roles', 'users', 'positions', 'permissions', 'userRoleIds', 'userPermissionIds'));
     }
 
     public function update(Request $request, $id)
@@ -111,8 +140,13 @@ public function store(Request $request)
             'name' => 'required|string|max:255',
             'email' => "required|email|unique:users,email,{$id}",
             'password' => 'nullable|min:6|confirmed',
-            'role_id' => 'required|exists:roles,id',
+            'role_id' => 'required|exists:roles,id', // Legacy
+            'role_ids' => 'nullable|array',
+            'role_ids.*' => 'exists:roles,id',
+            'position_id' => 'nullable|exists:positions,id',
             'manager_id' => 'nullable|exists:users,id|not_in:' . $id,
+            'permission_ids' => 'nullable|array',
+            'permission_ids.*' => 'exists:permissions,id',
             'target_total' => 'nullable|integer|min:0',
             'target_period' => 'required_with:target_total|string',
         ]);
@@ -120,13 +154,27 @@ public function store(Request $request)
         DB::transaction(function () use ($request, $user) {
             $user->name = $request->name;
             $user->email = $request->email;
-            $user->role_id = $request->role_id;
+            $user->role_id = $request->role_id; // Keep for backward compatibility
             $user->manager_id = $request->manager_id;
+            $user->position_id = $request->position_id;
 
             if ($request->password) {
                 $user->password = bcrypt($request->password);
             }
             $user->save();
+
+            // Sync roles using new system
+            if ($request->has('role_ids') && !empty($request->role_ids)) {
+                $user->syncRoles($request->role_ids);
+            } else {
+                // Fallback: sync single role
+                $user->syncRoles([$request->role_id]);
+            }
+
+            // Sync permissions
+            if ($request->has('permission_ids')) {
+                $user->syncPermissions($request->permission_ids ?? []);
+            }
 
             if ($request->filled('target_total')) {
                 $this->assignManagerTarget($user, $request->target_total, $request->target_period);

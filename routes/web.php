@@ -73,6 +73,36 @@ Route::prefix('admin')
             Route::get('users/{id}/edit', [UsersController::class, 'edit'])->name('users.edit');
             Route::put('users/{id}', [UsersController::class, 'update'])->name('users.update');
             Route::delete('users/{id}', [UsersController::class, 'destroy'])->name('users.destroy');
+            
+            // POSITIONS CRUD
+            Route::resource('positions', \App\Http\Controllers\Admin\PositionsController::class)->names([
+                'index' => 'positions.index',
+                'create' => 'positions.create',
+                'store' => 'positions.store',
+                'edit' => 'positions.edit',
+                'update' => 'positions.update',
+                'destroy' => 'positions.destroy',
+            ]);
+            
+            // ROLES CRUD
+            Route::resource('roles', \App\Http\Controllers\Admin\RolesController::class)->names([
+                'index' => 'roles.index',
+                'create' => 'roles.create',
+                'store' => 'roles.store',
+                'edit' => 'roles.edit',
+                'update' => 'roles.update',
+                'destroy' => 'roles.destroy',
+            ]);
+            
+            // PERMISSIONS CRUD
+            Route::resource('permissions', \App\Http\Controllers\Admin\PermissionsController::class)->names([
+                'index' => 'permissions.index',
+                'create' => 'permissions.create',
+                'store' => 'permissions.store',
+                'edit' => 'permissions.edit',
+                'update' => 'permissions.update',
+                'destroy' => 'permissions.destroy',
+            ]);
             // Add all the admin routes you want here
         });
 

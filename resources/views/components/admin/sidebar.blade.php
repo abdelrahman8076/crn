@@ -56,15 +56,33 @@
                         {{ __('aside.System_Management') }}
                     </li>
                     <li class="sidebar-item mb-1">
-                        <a class="sidebar-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 text-decoration-none" href="{{ route('admin.admin.index') }}">
+                        <a class="sidebar-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 text-decoration-none @if(Route::is('admin.admin.*')) active @endif" href="{{ route('admin.admin.index') }}">
                             <i class="ti ti-shield-lock fs-5"></i>
                             <span class="hide-menu">{{ __('aside.admin_index') }}</span>
                         </a>
                     </li>
                     <li class="sidebar-item mb-1">
-                        <a class="sidebar-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 text-decoration-none" href="{{ route('admin.users.index') }}">
+                        <a class="sidebar-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 text-decoration-none @if(Route::is('admin.users.*')) active @endif" href="{{ route('admin.users.index') }}">
                             <i class="ti ti-users-group fs-5"></i>
                             <span class="hide-menu">{{ __('aside.Users') }}</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item mb-1">
+                        <a class="sidebar-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 text-decoration-none @if(Route::is('admin.positions.*')) active @endif" href="{{ route('admin.positions.index') }}">
+                            <i class="ti ti-hierarchy fs-5"></i>
+                            <span class="hide-menu">Positions</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item mb-1">
+                        <a class="sidebar-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 text-decoration-none @if(Route::is('admin.roles.*')) active @endif" href="{{ route('admin.roles.index') }}">
+                            <i class="ti ti-shield fs-5"></i>
+                            <span class="hide-menu">Roles</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item mb-1">
+                        <a class="sidebar-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 text-decoration-none @if(Route::is('admin.permissions.*')) active @endif" href="{{ route('admin.permissions.index') }}">
+                            <i class="ti ti-key fs-5"></i>
+                            <span class="hide-menu">Permissions</span>
                         </a>
                     </li>
                 @endif

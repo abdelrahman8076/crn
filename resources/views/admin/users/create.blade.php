@@ -62,6 +62,34 @@
                                     </option>
                                 @endforeach
                             </select>
+                            <small class="text-muted">Primary role (legacy)</small>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Position (Hierarchy)</label>
+                            <select name="position_id" id="position_id" class="form-select @error('position_id') is-invalid @enderror">
+                                <option value="">No Position</option>
+                                @foreach($positions as $position)
+                                    <option value="{{ $position->id }}" {{ old('position_id') == $position->id ? 'selected' : '' }}>
+                                        {{ str_repeat('— ', $position->level) }}{{ $position->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <small class="text-muted">Determines hierarchy level</small>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Additional Roles</label>
+                            <select name="role_ids[]" id="role_ids" class="form-select" multiple size="4">
+                                @foreach($roles as $role)
+                                    <option value="{{ $role->id }}" {{ in_array($role->id, old('role_ids', [])) ? 'selected' : '' }}>
+                                        {{ $role->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <small class="text-muted">Hold Ctrl/Cmd to select multiple</small>
                         </div>
 
                         <div class="col-md-6 mb-3" id="manager_container">
@@ -74,7 +102,35 @@
                                     </option>
                                 @endforeach
                             </select>
+                            <small class="text-muted">Legacy manager assignment</small>
                         </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Direct Permissions</label>
+                        <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto;">
+                            @php
+                                $permissionGroups = $permissions->groupBy('group');
+                            @endphp
+                            @foreach($permissionGroups as $group => $groupPermissions)
+                                <div class="mb-2">
+                                    <strong class="text-primary d-block mb-1">{{ ucfirst($group) }}</strong>
+                                    @foreach($groupPermissions as $permission)
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="checkbox" 
+                                                   name="permission_ids[]" 
+                                                   value="{{ $permission->id }}" 
+                                                   id="perm_{{ $permission->id }}"
+                                                   {{ in_array($permission->id, old('permission_ids', [])) ? 'checked' : '' }}>
+                                            <label class="form-check-label small" for="perm_{{ $permission->id }}">
+                                                {{ str_replace($group . '.', '', $permission->name) }}
+                                            </label>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endforeach
+                        </div>
+                        <small class="text-muted">Direct permissions override role permissions</small>
                     </div>
 
                     <hr class="my-4">
