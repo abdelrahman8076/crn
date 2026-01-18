@@ -2,7 +2,7 @@
 
 return [
     'users' => 'Users',
-    'clients' => 'Clients',
+    'clients' => 'Leads',
     'leads' => 'Leads',
     'deals' => 'Deals',
     'recent_activities' => 'Recent Activities',

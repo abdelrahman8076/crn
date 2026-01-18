@@ -79,15 +79,6 @@
                 </div>
             </div>
 
-            <div class="flex items-center justify-between px-1">
-                <div class="flex items-center">
-                    <input id="remember_me" name="remember" type="checkbox" 
-                        class="h-4 w-4 text-orange-600 focus:ring-orange-500/20 border-[#e3e3e0] dark:border-[#3E3E3A] rounded-md bg-gray-50 dark:bg-[#0a0a0a] cursor-pointer">
-                    <label for="remember_me" class="{{ $isArabic ? 'mr-2' : 'ml-2' }} block text-sm font-medium text-[#706f6c] dark:text-[#A1A09A] cursor-pointer">
-                        {{ __('admins.remember_me') }}
-                    </label>
-                </div>
-            </div>
 
             <div>
                 <button type="submit" 

@@ -82,8 +82,6 @@ Route::prefix('admin')
             Route::post('/clients/uploadForm', [ClientsController::class, 'upload'])->name('clients.upload');
             Route::get('clients/create', [ClientsController::class, 'create'])->name('clients.create');
             Route::post('clients', [ClientsController::class, 'store'])->name('clients.store');
-            Route::get('clients/{client}/edit', [ClientsController::class, 'edit'])->name('clients.edit');
-            Route::put('clients/{client}', [ClientsController::class, 'update'])->name('clients.update');
             Route::delete('clients/{client}', [ClientsController::class, 'destroy'])->name('clients.destroy');
             Route::get('/import/template', [ClientsController::class, 'downloadTemplate'])->name('clients.template');
 
@@ -92,6 +90,10 @@ Route::prefix('admin')
         });
         Route::get('/clients/data', [ClientsController::class, 'data'])->name('clients.data');
         Route::get('clients', [ClientsController::class, 'index'])->name('clients.index');
+                    Route::get('clients/{client}/edit', [ClientsController::class, 'edit'])->name('clients.edit');
+                                Route::put('clients/{client}', [ClientsController::class, 'update'])->name('clients.update');
+
+
 
 
 
@@ -131,6 +133,7 @@ Route::prefix('admin')
         Route::put('tasks/{id}', [TasksController::class, 'update'])->name('tasks.update');
         Route::delete('tasks/{id}', [TasksController::class, 'destroy'])->name('destroy');
 
+        
 
 
 

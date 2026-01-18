@@ -90,8 +90,11 @@
                     </div>
                     <div class="col-sm-6 mb-3">
                         <label for="target_period" class="form-label">{{ __('users.target_period') }}</label>
-                        <input type="month" name="target_period" id="target_period" class="form-control" value="{{ old('target_period', date('Y-m')) }}">
-                    </div>
+<input type="date" 
+       name="target_period" 
+       id="target_period" 
+       class="form-control dark-date-input" 
+       value="{{ old('target_period', date('Y-m-d')) }}">                    </div>
                 </div>
                 <small class="text-muted d-block mt-n2">{{ __('users.target_logic_hint') }}</small>
             </div>

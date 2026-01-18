@@ -12,6 +12,25 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
     <style>
+        /* Container styling for Dark Mode */
+
+
+/* Force the calendar icon to appear and turn white */
+.dark-date-input::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    filter: invert(1); /* This turns the black icon white */
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.dark-date-input::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+}
+
+/* Adjusting for Firefox */
+.dark-date-input {
+    color-scheme: dark;
+}
         /* Ensures the datalist input matches your theme exactly */
 input[list].form-control {
     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%236c757d' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
@@ -156,6 +175,9 @@ input::-webkit-calendar-picker-indicator {
            ============================================ */
         [data-bs-theme="dark"] {
             color-scheme: dark;
+        }
+            [data-bs-theme="dark"] .dark-date-input {
+            color-scheme: white;
         }
 
         /* Body & Background */
@@ -632,6 +654,7 @@ input::-webkit-calendar-picker-indicator {
     </div>
 
     <script>
+        
         // Dark Mode Toggle Functionality
         (function() {
             'use strict';
@@ -710,6 +733,7 @@ input::-webkit-calendar-picker-indicator {
             });
         })();
     </script>
+    
  
 </body>
 </html>

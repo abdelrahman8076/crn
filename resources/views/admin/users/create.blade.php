@@ -96,10 +96,14 @@
                                 </div>
                             </div>
                             <div class="col-md-5">
-                                <input type="month" name="targets[0][period]" class="form-control" value="{{ date('Y-m') }}">
+                                <input type="date" 
+       name="targets[0][period]" 
+       id="target_period" 
+       class="form-control dark-date-input" 
+        value="{{ date('Y-m') }}">
                             </div>
                             <div class="col-md-1">
-                                <button type="button" class="btn btn-outline-danger w-100 remove-row" disabled><i class="bi bi-trash"></i></button>
+                                <button type="button" class="btn btn-outline-danger w-100 remove-row" disabled>X</button>
                             </div>
                         </div>
                     </div>
@@ -146,10 +150,10 @@
                     </div>
                 </div>
                 <div class="col-md-5">
-                    <input type="month" name="targets[${rowIdx}][period]" class="form-control" value="{{ date('Y-m') }}">
+                    <input type="date" name="targets[${rowIdx}][period]" class="form-control dark-date-input" value="{{ date('Y-m') }}">
                 </div>
                 <div class="col-md-1">
-                    <button type="button" class="btn btn-outline-danger w-100 remove-row"><i class="bi bi-trash"></i></button>
+                    <button type="button" class="btn btn-outline-danger w-100 remove-row">X</button>
                 </div>
             `;
             container.appendChild(newRow);

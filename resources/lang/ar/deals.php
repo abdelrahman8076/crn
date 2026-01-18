@@ -64,4 +64,6 @@ return [
 'pipeline_status' => 'حالة المبيعات',
 'client' => 'العميل المرتبط',
 'stage' => 'المرحلة الحالية',
+'update_success_msg' => 'تم تحديث الصفقة بنجاح.',
+"create_success_msg" => "تم إنشاء الصفقة بنجاح."
 ];

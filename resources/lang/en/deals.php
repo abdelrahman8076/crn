@@ -64,5 +64,8 @@ return [
 'pipeline_status' => 'Pipeline Status',
 'client' => 'Related Client',
 'stage' => 'Current Stage',
+'update_success_msg' => 'Deal updated successfully.',
+"create_success_msg" => "Deal created successfully."
+
 
 ];

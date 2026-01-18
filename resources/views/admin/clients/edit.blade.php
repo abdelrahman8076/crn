@@ -11,6 +11,11 @@
         </ol>
     </nav>
 
+    @php
+        // Check if the user is a Sales person (web guard)
+        $isSales = auth()->guard('web')->check() && auth()->guard('web')->user()?->role?->name === 'Sales';
+    @endphp
+
     <div class="row justify-content-center">
         <div class="col-lg-10">
             <div class="card shadow-sm border-0 border-top border-primary border-4">
@@ -54,7 +59,7 @@
                                 <div class="input-group input-group-merge">
                                     <span class="input-group-text bg-light border-end-0"><i class="ti ti-user"></i></span>
                                     <input type="text" class="form-control border-start-0 @error('name') is-invalid @enderror" 
-                                        name="name" value="{{ old('name', $client->name) }}" required>
+                                        name="name" value="{{ old('name', $client->name) }}" required {{ $isSales ? 'readonly' : '' }}>
                                 </div>
                                 @error('name') <div class="text-danger extra-small mt-1">{{ $message }}</div> @enderror
                             </div>
@@ -65,7 +70,7 @@
                                 <div class="input-group input-group-merge">
                                     <span class="input-group-text bg-light border-end-0"><i class="ti ti-mail"></i></span>
                                     <input type="email" class="form-control border-start-0 @error('email') is-invalid @enderror" 
-                                        name="email" value="{{ old('email', $client->email) }}">
+                                        name="email" value="{{ old('email', $client->email) }}" {{ $isSales ? 'readonly' : '' }}>
                                 </div>
                                 @error('email') <div class="text-danger extra-small mt-1">{{ $message }}</div> @enderror
                             </div>
@@ -76,7 +81,7 @@
                                 <div class="input-group input-group-merge">
                                     <span class="input-group-text bg-light border-end-0"><i class="ti ti-phone"></i></span>
                                     <input type="text" id="phone" class="form-control border-start-0 @error('phone') is-invalid @enderror" 
-                                        name="phone" value="{{ old('phone', $client->phone) }}">
+                                        name="phone" value="{{ old('phone', $client->phone) }}" {{ $isSales ? 'readonly' : '' }}>
                                     <button class="btn btn-soft-success px-3 border" type="button" onclick="openWhatsApp()" data-bs-toggle="tooltip" title="Message on WhatsApp">
                                         <i class="ti ti-brand-whatsapp fs-4"></i>
                                     </button>
@@ -84,7 +89,7 @@
                                 @error('phone') <div class="text-danger extra-small mt-1">{{ $message }}</div> @enderror
                             </div>
 
-                            {{-- Status Selection --}}
+                            {{-- Status Selection - ALWAYS EDITABLE --}}
                             <div class="col-md-6">
                                 <label for="status" class="form-label fw-semibold small">{{ __('clients.status') }}</label>
                                 <div class="input-group">
@@ -93,12 +98,13 @@
                                         <option value="">{{ __('clients.select_status') }}</option>
                                         @php
                                             $statuses = [
+                                                'new'           => '0 - New',
                                                 'potential'     => '1 - Potential',
                                                 'not_potential' => '2 - Not Potential',
                                                 'hot_case'      => '3 - Hot Case',
-                                                'closed_deal'   => '4 - Closed Deal',
-                                                'no_answer'     => '5 - No Answer',
-                                                'meeting_done'  => '6 - Meeting Done'
+                                                'no_answer'     => '4 - No Answer',
+                                                'meeting_done'  => '5 - Meeting Done',
+                                                'call_again'     => '6 - Call Again',
                                             ];
                                         @endphp
                                         @foreach($statuses as $key => $label)
@@ -121,40 +127,32 @@
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold small">{{ __('clients.company') }}</label>
                                 <input type="text" class="form-control @error('company') is-invalid @enderror" 
-                                    name="company" value="{{ old('company', $client->company) }}">
+                                    name="company" value="{{ old('company', $client->company) }}" {{ $isSales ? 'readonly' : '' }}>
                             </div>
 
-<div class="col-md-6">
-    <label class="form-label fw-semibold small">{{ __('clients.source') }}</label>
-    
-    {{-- 
-        onfocus: Shows the dropdown list immediately when clicked
-        onmousedown: Fixes a bug in some browsers to ensure the list triggers
-    --}}
-    <input type="text" 
-           name="source" 
-           list="sourceOptions" 
-           class="form-control @error('source') is-invalid @enderror" 
-           value="{{ old('source', $client->source ?? '') }}" 
-           placeholder="{{ __('Select or type...') }}"
-           autocomplete="off"
-           onfocus="this.value = ''; this.value = '{{ old('source', $client->source ?? '') }}'"
->
-    <datalist id="sourceOptions">
-        <option value="Facebook">
-        <option value="Google">
-        <option value="Website">
-        <option value="Referral">
-    </datalist>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small">{{ __('clients.source') }}</label>
+                                <input type="text" 
+                                       name="source" 
+                                       list="sourceOptions" 
+                                       class="form-control @error('source') is-invalid @enderror" 
+                                       value="{{ old('source', $client->source ?? '') }}" 
+                                       placeholder="{{ __('Select or type...') }}"
+                                       autocomplete="off"
+                                       {{ $isSales ? 'readonly' : '' }}>
+                                <datalist id="sourceOptions">
+                                    <option value="Facebook">
+                                    <option value="Google">
+                                    <option value="Website">
+                                    <option value="Referral">
+                                </datalist>
+                            </div>
 
-    @error('source')
-        <div class="invalid-feedback">{{ $message }}</div>
-    @enderror
-</div>
-
+                            {{-- Hide Assigned Sales Rep if user is Sales --}}
+                            @if(!$isSales)
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold small">{{ __('clients.assigned_user') }}</label>
-                                <select class="form-select @error('assigned_to_sale') is-invalid @enderror" name="assigned_to_sale">
+                                <select class="form-select @error('assigned_to_sale') is-invalid @enderror" name="assigned_to_user">
                                     <option value="">{{ __('clients.select_sale') }}</option>
                                     @foreach($sales as $sale)
                                         <option value="{{ $sale->id }}" {{ old('assigned_to_sale', $client->assigned_to_sale) == $sale->id ? 'selected' : '' }}>
@@ -163,8 +161,10 @@
                                     @endforeach
                                 </select>
                             </div>
+                            @endif
 
-                            @if(auth()->guard('admin')->check() )
+                            {{-- Only show Manager assignment to Admin guard --}}
+                            @if(auth()->guard('admin')->check())
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold small">{{ __('clients.assigned_manager') }}</label>
                                 <select class="form-select @error('assigned_to_manager') is-invalid @enderror" name="assigned_to_manager">
@@ -178,7 +178,7 @@
                             </div>
                             @endif
 
-                            {{-- Feedback --}}
+                            {{-- Feedback - ALWAYS EDITABLE --}}
                             <div class="col-12">
                                 <label class="form-label fw-semibold small">{{ __('clients.feedback') }}</label>
                                 <textarea class="form-control @error('feedback') is-invalid @enderror" name="feedback"
@@ -187,7 +187,6 @@
                         </div>
 
                         {{-- Form Footer --}}
-                        @if (!isSales())
                         <div class="mt-5 pt-4 border-top d-flex justify-content-end align-items-center gap-3">
                             <a href="{{ route('admin.clients.index') }}" class="btn btn-light px-4 text-muted">
                                 {{ __('clients.cancel') }}
@@ -196,7 +195,6 @@
                                 <i class="ti ti-refresh me-1"></i> {{ __('clients.update') }}
                             </button>
                         </div>
-                        @endif
                     </form>
                 </div>
             </div>
@@ -205,7 +203,6 @@
 </div>
 
 <style>
-    /* NexusCRM Edit Theme Extensions */
     .bg-soft-primary { background-color: rgba(13, 110, 253, 0.08); }
     .bg-soft-info { background-color: rgba(13, 202, 240, 0.1); }
     .text-info { color: #0dcaf0 !important; }
@@ -217,6 +214,7 @@
     .btn-soft-success:hover { background-color: #198754; color: white !important; }
     .form-control, .form-select { border-color: #e5e7eb; padding: 0.6rem 0.8rem; }
     .form-control:focus, .form-select:focus { border-color: #0d6efd; box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.1); }
+    .form-control[readonly] { background-color: #f8f9fa; opacity: 0.8; cursor: not-allowed; }
     .extra-small { font-size: 0.75rem; }
     .card { border-radius: 12px; }
 </style>
@@ -237,5 +235,4 @@
         tooltipTriggerList.map(function (el) { return new bootstrap.Tooltip(el) });
     });
 </script>
-
 @endsection

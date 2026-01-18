@@ -48,7 +48,13 @@
 @endphp
 
 {{-- Final Condition --}}
-@if(auth('admin')->check() && ($deleteFlag ?? false) && auth('admin')->id() !== $id && $canDelete)
+@if(
+    Auth::guard('admin')->check() && 
+    ($deleteFlag ?? false) && 
+    $canDelete && 
+    // Only hide the button if it's the Admin table AND the IDs match
+    (!($isAdminTable ?? false) || auth('admin')->id() !== $id)
+)
     <form action="{{ route($deleteRoute, $id) }}" method="POST" style="display:inline;">
         @csrf
         @method('DELETE')

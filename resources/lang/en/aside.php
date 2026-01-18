@@ -6,7 +6,7 @@ return [
     'Dashboard'           => 'Dashboard',
     'Users'               => 'Users',
     'Roles'               => 'Roles',
-    'Clients'             => 'Leass',
+    'Clients'             => 'Leads',
     'Leads'               => 'Leads',
     'Deals'               => 'Deals',
     'Tasks'               => 'Tasks',

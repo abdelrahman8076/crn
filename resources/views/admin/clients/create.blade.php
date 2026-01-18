@@ -91,9 +91,9 @@
             <option value="potential" {{ old('status') == 'potential' ? 'selected' : '' }}>1 - Potential</option>
             <option value="not_potential" {{ old('status') == 'not_potential' ? 'selected' : '' }}>2 - Not Potential</option>
             <option value="hot_case" {{ old('status') == 'hot_case' ? 'selected' : '' }}>3 - Hot Case</option>
-            <option value="closed_deal" {{ old('status') == 'closed_deal' ? 'selected' : '' }}>4 - Closed Deal</option>
-            <option value="no_answer" {{ old('status') == 'no_answer' ? 'selected' : '' }}>5 - No Answer</option>
-            <option value="meeting_done" {{ old('status') == 'meeting_done' ? 'selected' : '' }}>6 - Meeting Done</option>
+            <option value="no_answer" {{ old('status') == 'no_answer' ? 'selected' : '' }}>4 - No Answer</option>
+            <option value="meeting_done" {{ old('status') == 'meeting_done' ? 'selected' : '' }}>5 - Meeting Done</option>
+            <option value="call_again" {{ old('status') == 'call_again' ? 'selected' : '' }}>6 - Call Again</option>
         </select>
     </div>
     @error('status') <div class="text-danger extra-small mt-1">{{ $message }}</div> @enderror
@@ -139,7 +139,7 @@
 
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold small">{{ __('clients.assigned_user') }}</label>
-                                <select class="form-select @error('assigned_to_sale') is-invalid @enderror" name="assigned_to_sale">
+                                <select class="form-select @error('assigned_to_sale') is-invalid @enderror" name="assigned_to_user">
                                     <option value="">{{ __('clients.select_sale') }}</option>
                                     @foreach($sales as $sale)
                                         <option value="{{ $sale->id }}" {{ old('assigned_to_sale') == $sale->id ? 'selected' : '' }}>

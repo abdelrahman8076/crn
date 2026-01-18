@@ -209,7 +209,6 @@ class ClientsController extends Controller
         $client->save();
 
         // 2. Now delete the client
-        $client->delete();
 
         return redirect()
             ->route('admin.clients.index')

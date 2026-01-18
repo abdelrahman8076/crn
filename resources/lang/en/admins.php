@@ -34,7 +34,7 @@ return [
     'register_btn' => 'Register',
     // Dashboard
     'users'              => 'Users',
-    'clients'            => 'Clients',
+    'clients'            => 'Leads',
     'leads'              => 'Leads',
     'deals'              => 'Deals',
     'dashboard' => 'Dashboard',
