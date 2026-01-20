@@ -202,16 +202,34 @@ $(document).ready(function () {
     const table = $('#datatable').DataTable({
         processing: true,
         serverSide: true,
-        ajax: '{!! $ajaxUrl !!}',
+        ajax: {
+            url: '{!! $ajaxUrl !!}',
+            error: function(xhr, error, thrown) {
+                console.error('DataTables Error:', error, thrown);
+                if (xhr.responseJSON && xhr.responseJSON.error) {
+                    alert('Error: ' + xhr.responseJSON.error);
+                } else if (xhr.status === 403) {
+                    alert('You do not have permission to access this data.');
+                } else {
+                    alert('An error occurred while loading the data. Please try again.');
+                }
+            }
+        },
         autoWidth: false,
         dom: '<"d-flex justify-content-between align-items-center p-3"lf>rt<"d-flex justify-content-between align-items-center p-3"ip>',
-        drawCallback: function() {
+        drawCallback: function(settings) {
             // Apply labels to cells for mobile CSS :before content
             $('#datatable tbody tr').each(function() {
                 $(this).find('td').each(function(index) {
                     $(this).attr('data-label', labels[index]);
                 });
             });
+            
+            // Check for error in response
+            var json = settings.json;
+            if (json && json.error) {
+                alert('Error: ' + json.error);
+            }
         },
         columns: [
             @foreach ($columns as $index => $col)

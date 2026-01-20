@@ -38,10 +38,11 @@
                     <input type="password" name="password" id="password" class="form-control @error('password') is-invalid @enderror" placeholder="{{ __('users.leave_blank') }}">
                     <small class="text-muted">{{ __('users.password_hint') }}</small>
                 </div>
-                     <div class="mb-3">
-                        <label class="form-label">{{ __('users.password_confirmation') }} *</label>
-                        <input type="password" name="password_confirmation" class="form-control" required>
-                    </div>
+                <div class="mb-3">
+                    <label class="form-label">{{ __('users.password_confirmation') }}</label>
+                    <input type="password" name="password_confirmation" class="form-control" placeholder="{{ __('users.leave_blank') }}">
+                    <small class="text-muted">{{ __('users.password_confirmation_hint') ?? 'Only required if changing password' }}</small>
+                </div>
             </div>
 
             {{-- Column 2: Roles & Targets --}}

@@ -6,19 +6,23 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Target;
 use App\Models\Role;
+use App\Models\Permission;
 use Illuminate\Http\Request;
 use App\Services\DataTables\BaseDataTable;
 use App\Traits\HasAccessFilter;
+use App\Traits\ChecksPermissions;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 class UsersController extends Controller
 {
-    use HasAccessFilter;
+    use HasAccessFilter, ChecksPermissions;
 
     public function index()
     {
+        $this->requirePermission('view-users');
+        
         $columns = ['id', 'name', 'email', 'created_at'];
         $renderComponents = true;
         $customActionsView = 'components.default-buttons-table';
@@ -28,28 +32,53 @@ class UsersController extends Controller
 
     public function data(Request $request)
     {
-        $query = User::query();
-        $query = $this->filterAccess($query);
+        try {
+            if (!$this->checkPermission('view-users')) {
+                return response()->json([
+                    'draw' => (int) $request->get('draw', 1),
+                    'recordsTotal' => 0,
+                    'recordsFiltered' => 0,
+                    'data' => [],
+                    'error' => 'You do not have permission to view users.'
+                ], 200);
+            }
 
-        $columns = ['id', 'name', 'email', 'created_at'];
+            $query = User::query();
+            $query = $this->filterAccess($query);
 
-        $service = new BaseDataTable($query, $columns, true, 'components.default-buttons-table');
-        $service->setActionProps([
-            'routeName' => 'admin.users',
-            'deleteFlag' => true
-        ]);
+            $columns = ['id', 'name', 'email', 'created_at'];
 
-        return $service->make($request);
+            $service = new BaseDataTable($query, $columns, true, 'components.default-buttons-table');
+            $service->setActionProps([
+                'routeName' => 'admin.users',
+                'deleteFlag' => true
+            ]);
+
+            return $service->make($request);
+        } catch (\Exception $e) {
+            \Log::error('UsersController data method error: ' . $e->getMessage());
+            return response()->json([
+                'draw' => (int) $request->get('draw', 1),
+                'recordsTotal' => 0,
+                'recordsFiltered' => 0,
+                'data' => [],
+                'error' => 'An error occurred while loading data: ' . $e->getMessage()
+            ], 200);
+        }
     }
 
     public function create()
     {
+        $this->requirePermission('create-users');
+        
         $roles = Role::all();
         $users = User::all();
         return view('admin.users.create', compact('roles', 'users'));
     }
 public function store(Request $request)
 {
+    $this->requirePermission('create-users');
+    
     $request->validate([
         'name' => 'required|string|max:255',
         'email' => 'required|email|unique:users,email',
@@ -84,6 +113,8 @@ public function store(Request $request)
 
     public function edit($id)
     {
+        $this->requirePermission('edit-users');
+        
         // Load ALL targets ordered by period to show history in the view
         $user = User::with(['targets' => function ($q) {
             $q->orderBy('period', 'desc');
@@ -101,6 +132,8 @@ public function store(Request $request)
 
     public function update(Request $request, $id)
     {
+        $this->requirePermission('edit-users');
+        
         $user = User::findOrFail($id);
 
         if (!$this->canAccess($user)) {
@@ -187,6 +220,8 @@ public function store(Request $request)
 
     public function destroy($id)
     {
+        $this->requirePermission('delete-users');
+        
         $user = User::findOrFail($id);
         if (!$this->canAccess($user)) return back()->with('error', 'Unauthorized');
 

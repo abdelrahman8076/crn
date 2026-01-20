@@ -12,8 +12,12 @@ use Illuminate\Database\Eloquent\Builder;
 
 class DashboardController extends Controller
 {
+    use \App\Traits\ChecksPermissions;
+
     public function index()
     {
+        $this->requirePermission('view-dashboard');
+        
         $user = $this->getLoggedUser();
         if (!$user) {
             return redirect('/login')->withErrors('Session expired, please login again.');

@@ -127,4 +127,46 @@ class User extends Authenticatable
         // Option B: If you just have a 'role' string column on the users table
         // return $this->role === $role;
     }
+
+    /**
+     * Check if user has a specific permission through their role.
+     */
+    public function hasPermission(string $permissionSlug): bool
+    {
+        if (!$this->role) {
+            return false;
+        }
+
+        return $this->role->hasPermission($permissionSlug);
+    }
+
+    /**
+     * Check if user has any of the given permissions.
+     */
+    public function hasAnyPermission(array $permissionSlugs): bool
+    {
+        if (!$this->role) {
+            return false;
+        }
+
+        return $this->role->permissions()
+            ->whereIn('slug', $permissionSlugs)
+            ->exists();
+    }
+
+    /**
+     * Check if user has all of the given permissions.
+     */
+    public function hasAllPermissions(array $permissionSlugs): bool
+    {
+        if (!$this->role) {
+            return false;
+        }
+
+        $count = $this->role->permissions()
+            ->whereIn('slug', $permissionSlugs)
+            ->count();
+
+        return $count === count($permissionSlugs);
+    }
 }

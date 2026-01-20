@@ -9,14 +9,17 @@ use App\Models\User;
 use App\Models\Client;
 use Illuminate\Support\Facades\Auth;
 use App\Traits\HasAccessFilter;
+use App\Traits\ChecksPermissions;
 use App\Services\DataTables\BaseDataTable;
 
 class LeadsController extends Controller
 {
-    use HasAccessFilter;
+    use HasAccessFilter, ChecksPermissions;
 
     public function index()
     {
+        $this->requirePermission('view-leads');
+        
         $columns = ['id', 'title', 'source', 'status', 'client.name'];
         $renderComponents = true; // or false based on your condition
         $customActionsView = 'components.default-buttons-table';
@@ -27,21 +30,44 @@ class LeadsController extends Controller
     // Datatable / AJAX data
     public function data(Request $request)
     {
-        $query = Lead::with(['client']);
+        try {
+            if (!$this->checkPermission('view-leads')) {
+                return response()->json([
+                    'draw' => (int) $request->get('draw', 1),
+                    'recordsTotal' => 0,
+                    'recordsFiltered' => 0,
+                    'data' => [],
+                    'error' => 'You do not have permission to view leads.'
+                ], 200);
+            }
 
-        // Apply generic access filter
-        $query = $this->filterAccess($query, 'lead');
+            $query = Lead::with(['client']);
 
-        $columns = ['id', 'title', 'source', 'status', 'client.name'];
-        $service = new BaseDataTable($query, $columns, true, 'components.default-buttons-table');
-        $service->setActionProps(['routeName' => 'admin.leads']);
+            // Apply generic access filter
+            $query = $this->filterAccess($query, 'lead');
 
-        return $service->make($request);
+            $columns = ['id', 'title', 'source', 'status', 'client.name'];
+            $service = new BaseDataTable($query, $columns, true, 'components.default-buttons-table');
+            $service->setActionProps(['routeName' => 'admin.leads']);
+
+            return $service->make($request);
+        } catch (\Exception $e) {
+            \Log::error('LeadsController data method error: ' . $e->getMessage());
+            return response()->json([
+                'draw' => (int) $request->get('draw', 1),
+                'recordsTotal' => 0,
+                'recordsFiltered' => 0,
+                'data' => [],
+                'error' => 'An error occurred while loading data: ' . $e->getMessage()
+            ], 200);
+        }
     }
 
     // Show create form
     public function create()
     {
+        $this->requirePermission('create-leads');
+        
         $users = User::all();
         $clients = $this->getAccessibleClients(); // only clients the user can access
 
@@ -51,6 +77,8 @@ class LeadsController extends Controller
     // Store lead
     public function store(Request $request)
     {
+        $this->requirePermission('create-leads');
+        
         $request->validate([
             'title' => 'required|string|max:255',
             'source' => 'nullable|string|max:255',
@@ -68,6 +96,8 @@ class LeadsController extends Controller
     // Show edit form
     public function edit($id)
     {
+        $this->requirePermission('edit-leads');
+        
         $lead = Lead::findOrFail($id);
         $users = User::all();
         $clients = $this->getAccessibleClients();
@@ -78,6 +108,8 @@ class LeadsController extends Controller
     // Update lead
     public function update(Request $request, $id)
     {
+        $this->requirePermission('edit-leads');
+        
         $lead = Lead::findOrFail($id);
 
         $request->validate([
@@ -97,6 +129,8 @@ class LeadsController extends Controller
     // Delete lead
     public function destroy($id)
     {
+        $this->requirePermission('delete-leads');
+        
         Lead::findOrFail($id)->delete();
 
         return redirect()->route('admin.leads.index')

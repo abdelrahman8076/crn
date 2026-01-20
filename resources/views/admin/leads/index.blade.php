@@ -8,9 +8,11 @@
         <div class="d-flex justify-content-between align-items-center mb-3 mt-5">
         <h4>{{ __('leads.title') }}</h4>
 
+        @permission('create-leads')
         <a href="{{ route('admin.leads.create') }}" class="btn btn-primary">
             <i class="bi bi-plus-circle me-1"></i> {{ __('leads.create_button') }}
         </a>
+        @endpermission
     </div>
 
     <x-datatable 

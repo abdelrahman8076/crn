@@ -74,10 +74,12 @@
                 </div>
 
                 <div class="d-flex gap-2">
+                    @permission('create-deals')
                     <a href="{{ route('admin.deals.create') }}" class="btn btn-primary px-4 py-2 shadow-sm d-flex align-items-center">
                         <i class="ti ti-plus me-1 fs-5"></i> 
                         <span class="fw-bold small">{{ __('deals.create_title') }}</span>
                     </a>
+                    @endpermission
                 </div>
             </div>
         </div>

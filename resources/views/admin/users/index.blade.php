@@ -13,9 +13,11 @@
         </div>
 
         <div class="d-flex gap-2">
+            @permission('create-users')
             <a href="{{ route('admin.users.create') }}" class="btn btn-primary rounded-pill px-4 shadow-sm d-flex align-items-center">
                 <i class="ti ti-plus me-2 fs-5"></i> {{ __('users.create_title') }}
             </a>
+            @endpermission
         </div>
     </div>
 

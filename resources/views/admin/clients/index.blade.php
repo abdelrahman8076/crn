@@ -16,12 +16,12 @@
             <p class="text-muted small mb-0">{{ __('Manage and monitor your customer relationships.') }}</p>
         </div>
 
-        @if (!isSales())
+        @permission('create-clients')
             <a href="{{ route('admin.clients.create') }}" class="btn btn-primary shadow-sm px-4">
                 <i class="ti ti-plus me-1 fs-5"></i>
                 {{ __('clients.create_title') }}
             </a>
-        @endif
+        @endpermission
     </div>
 
     <x-flash-success />

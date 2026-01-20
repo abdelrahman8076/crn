@@ -89,14 +89,12 @@
                 </div>
 
                 <div class="d-flex gap-2">
-                    @notrole('Sales')
+                    @permission('create-tasks')
                         <a href="{{ route('admin.tasks.create') }}" class="btn btn-primary px-4 py-2 shadow-sm d-flex align-items-center rounded-pill">
                             <i class="ti ti-plus me-1 fs-5"></i> 
                             <span class="fw-bold small">{{ __('tasks.create_button') }}</span>
                         </a>
-                    @endrole
-                    
-            
+                    @endpermission
                 </div>
             </div>
         </div>

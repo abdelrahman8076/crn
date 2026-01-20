@@ -16,9 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'set_locale' => \App\Http\Middleware\SetLocale::class,
             'admin_only' => \App\Http\Middleware\AdminOnly::class,
             'admin_or_manager' => \App\Http\Middleware\AllowAdminOrManager::class,
-
-
-
+            'permission' => \App\Http\Middleware\CheckPermission::class,
         ]);
         $middleware->appendToGroup('web', [
             \App\Http\Middleware\SetLocale::class,

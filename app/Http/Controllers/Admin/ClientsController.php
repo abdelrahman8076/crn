@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use App\Services\ExcelImportService;
 use App\Services\DataTables\BaseDataTable;
 use App\Traits\HasAccessFilter;
+use App\Traits\ChecksPermissions;
 use Illuminate\Support\Facades\Auth;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -17,13 +18,15 @@ use PhpOffice\PhpSpreadsheet\Cell\Coordinate; // Import this!
 
 class ClientsController extends Controller
 {
-    use HasAccessFilter;
+    use HasAccessFilter, ChecksPermissions;
 
     /**
      * LIST PAGE
      */
     public function downloadTemplate()
     {
+        $this->requirePermission('create-clients');
+        
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
         $client = new Client();
@@ -63,6 +66,8 @@ class ClientsController extends Controller
     }
     public function index()
     {
+        $this->requirePermission('view-clients');
+        
         $columns = ['id', 'name', 'phone', 'email', 'company', 'address', 'source', 'status'];
         $renderComponents = true;
         $customActionsView = 'components.default-buttons-table';
@@ -75,25 +80,46 @@ class ClientsController extends Controller
      */
     public function data(Request $request)
     {
-        $query = Client::with(['assignedSale', 'assignedManager']);
-        $query = $this->filterAccess($query); // for sales
-        $columns = ['id', 'name', 'phone', 'email', 'company', 'address', 'source', 'status'];
+        try {
+            if (!$this->checkPermission('view-clients')) {
+                return response()->json([
+                    'draw' => (int) $request->get('draw', 1),
+                    'recordsTotal' => 0,
+                    'recordsFiltered' => 0,
+                    'data' => [],
+                    'error' => 'You do not have permission to view clients.'
+                ], 200);
+            }
 
-        $service = new BaseDataTable(
-            $query,
-            $columns,
-            true,
-            'components.default-buttons-table'
-        );
+            $query = Client::with(['assignedSale', 'assignedManager']);
+            $query = $this->filterAccess($query); // for sales
+            $columns = ['id', 'name', 'phone', 'email', 'company', 'address', 'source', 'status'];
 
-        $service->setActionProps([
-            'routeName' => 'admin.clients',
-            'deleteFlag' => true,
-            'checkNullFields' => ['assigned_to_sale', 'assigned_to_manager']
+            $service = new BaseDataTable(
+                $query,
+                $columns,
+                true,
+                'components.default-buttons-table'
+            );
 
-        ]);
+            $service->setActionProps([
+                'routeName' => 'admin.clients',
+                'deleteFlag' => true,
+                'checkNullFields' => ['assigned_to_sale', 'assigned_to_manager']
 
-        return $service->make($request);
+            ]);
+
+            return $service->make($request);
+        } catch (\Exception $e) {
+            \Log::error('ClientsController data method error: ' . $e->getMessage());
+            return response()->json([
+                'draw' => (int) $request->get('draw', 1),
+                'recordsTotal' => 0,
+                'recordsFiltered' => 0,
+                'data' => [],
+                'error' => 'An error occurred while loading data: ' . $e->getMessage()
+            ], 200);
+        }
     }
 
     /**
@@ -101,6 +127,8 @@ class ClientsController extends Controller
      */
     public function create()
     {
+        $this->requirePermission('create-clients');
+        
         $users = User::with('role')->get();
         $sales = User::sales()->get();
         $managers = User::managers()->get();
@@ -114,6 +142,8 @@ class ClientsController extends Controller
      */
     public function store(Request $request)
     {
+        $this->requirePermission('create-clients');
+        
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'company' => 'nullable|string|max:255',
@@ -153,6 +183,8 @@ class ClientsController extends Controller
      */
     public function edit($id)
     {
+        $this->requirePermission('edit-clients');
+        
         $client = Client::findOrFail($id);
         $users = User::with('role')->get();
         $sales = User::sales()->get();
@@ -167,6 +199,8 @@ class ClientsController extends Controller
      */
     public function update(Request $request, $id)
     {
+        $this->requirePermission('edit-clients');
+        
         $client = Client::findOrFail($id);
 
         $data = $request->validate([
@@ -201,6 +235,8 @@ class ClientsController extends Controller
      */
     public function destroy($id)
     {
+        $this->requirePermission('delete-clients');
+        
         $client = Client::findOrFail($id);
 
         // 1. Remove the relationship links first
@@ -220,6 +256,8 @@ class ClientsController extends Controller
      */
     public function uploadForm()
     {
+        $this->requirePermission('create-clients');
+        
         return view('admin.clients.upload');
     }
 
@@ -228,6 +266,8 @@ class ClientsController extends Controller
      */
     public function upload(Request $request)
     {
+        $this->requirePermission('create-clients');
+        
         $request->validate([
             'file' => 'required|mimes:xlsx,csv,xls',
         ]);

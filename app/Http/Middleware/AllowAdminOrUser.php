@@ -9,18 +9,26 @@ class AllowAdminOrUser
 {
     public function handle($request, Closure $next)
     {
-
-        // If admin is logged in → allow
+        // If admin guard is logged in → allow
         if (Auth::guard('admin')->check()) {
             return $next($request);
         }
 
-        // If normal user is logged in → allow
+        // If web guard user is logged in and has admin access permission → allow
         if (Auth::guard('web')->check()) {
-            return $next($request);
+            $user = Auth::guard('web')->user();
+            
+            // Check if user has admin access permission or is Manager/Sales/Admin role
+            if ($user && (
+                $user->hasPermission('access-admin') || 
+                in_array($user->role?->name, ['Manager', 'Sales']) ||
+                $user->role?->name === 'Admin'
+            )) {
+                return $next($request);
+            }
         }
 
-        // Otherwise redirect to login
-        return redirect()->route('login')->with('error', 'Unauthorized access.');
+        // Otherwise redirect to admin login
+        return redirect()->route('admin.login')->with('error', 'Unauthorized access. Please login to continue.');
     }
 }

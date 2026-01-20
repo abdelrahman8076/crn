@@ -10,11 +10,21 @@ class AdminOnly
 {
     public function handle(Request $request, Closure $next)
     {
-        // Allow only authenticated admins
-        if (!Auth::guard('admin')->check()) {
-            abort(403, 'Access denied.');
+        // Allow Admin guard (Admin model) - full access
+        if (Auth::guard('admin')->check()) {
+            return $next($request);
         }
 
-        return $next($request);
+        // Allow User guard (User model) if they have admin access permission
+        if (Auth::guard('web')->check()) {
+            $user = Auth::guard('web')->user();
+            
+            // Check if user has admin access permission
+            if ($user && $user->hasPermission('access-admin')) {
+                return $next($request);
+            }
+        }
+
+        abort(403, 'Access denied. Admin access required.');
     }
 }

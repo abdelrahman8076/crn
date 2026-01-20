@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -20,6 +21,7 @@ class AdminAuthController extends Controller
 
     /**
      * Handle Login
+     * Allows both Admin model and User model (with admin access permission) to login
      */
     public function login(Request $request)
     {
@@ -28,8 +30,33 @@ class AdminAuthController extends Controller
             'password' => 'required'
         ]);
 
+        // First, try to authenticate as Admin (Admin model)
         if (Auth::guard('admin')->attempt($credentials, $request->remember)) {
+            session(['user_type' => 'admin']);
             return redirect()->route('admin.dashboard');
+        }
+
+        // If Admin authentication fails, try User model (if user has admin access permission)
+        if (Auth::guard('web')->attempt($credentials, $request->remember)) {
+            $user = Auth::guard('web')->user();
+            
+            // Check if user has admin access permission or is Manager/Sales role
+            if ($user && (
+                $user->hasPermission('access-admin') || 
+                in_array($user->role?->name, ['Manager', 'Sales']) ||
+                $user->role?->name === 'Admin'
+            )) {
+                // Store that this user is accessing admin panel
+                session(['user_type' => 'user_admin']);
+                session(['admin_user_id' => $user->id]);
+                return redirect()->route('admin.dashboard');
+            } else {
+                // User doesn't have permission, logout and show error
+                Auth::guard('web')->logout();
+                return back()->withErrors([
+                    'email' => __('You do not have permission to access the admin panel. Please contact administrator.')
+                ]);
+            }
         }
 
         return back()->withErrors(['email' => __('Invalid credentials')]);
@@ -70,7 +97,18 @@ class AdminAuthController extends Controller
      */
     public function logout()
     {
-        Auth::guard('admin')->logout();
+        // Check which guard is active
+        if (Auth::guard('admin')->check()) {
+            Auth::guard('admin')->logout();
+        }
+        
+        if (Auth::guard('web')->check()) {
+            Auth::guard('web')->logout();
+        }
+        
+        // Clear admin session data
+        session()->forget(['user_type', 'admin_user_id']);
+        
         return redirect()->route('admin.login');
     }
 }

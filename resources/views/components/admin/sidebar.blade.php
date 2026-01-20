@@ -38,71 +38,140 @@
                     {{ __('aside.Main_Menu') }}
                 </li>
 
+                @permission('view-dashboard')
                 <li class="sidebar-item mb-1">
                     <a class="sidebar-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 text-decoration-none @if(Route::is('admin.dashboard')) active @endif" href="{{ route('admin.dashboard') }}">
                         <i class="ti ti-smart-home fs-5"></i>
                         <span class="hide-menu">{{ __('aside.Dashboard') }}</span>
                     </a>
                 </li>
+                @endpermission
 
                 @php
                     $isAdmin = Auth::guard('admin')->check();
-                    $isManager = Auth::guard('web')->check() && Auth::user()->role?->name === 'Manager';
-                    $isSales = Auth::guard('web')->check() && Auth::user()->role?->name === 'Sales';
+                    // Helper function to check permission for both guards
+                    if (!function_exists('hasPermission')) {
+                        function hasPermission($permission) {
+                            if (Auth::guard('admin')->check()) {
+                                $admin = Auth::guard('admin')->user();
+                                return !$admin->role_id || !$admin->role ? true : $admin->hasPermission($permission);
+                            } elseif (Auth::guard('web')->check()) {
+                                $user = Auth::guard('web')->user();
+                                return $user && $user->role && $user->hasPermission($permission);
+                            }
+                            return false;
+                        }
+                    }
                 @endphp
 
-                @if($isAdmin)
+                @if(
+                    (function() {
+                        $hasViewAdmins = false;
+                        $hasViewUsers = false;
+                        if (auth()->guard('admin')->check()) {
+                            $admin = auth()->guard('admin')->user();
+                            if (!$admin->role_id || !$admin->role) {
+                                $hasViewAdmins = true;
+                                $hasViewUsers = true;
+                            } else {
+                                $hasViewAdmins = $admin->hasPermission('view-admins');
+                                $hasViewUsers = $admin->hasPermission('view-users');
+                            }
+                        } elseif (auth()->guard('web')->check()) {
+                            $user = auth()->guard('web')->user();
+                            if ($user && $user->role) {
+                                $hasViewAdmins = $user->hasPermission('view-admins');
+                                $hasViewUsers = $user->hasPermission('view-users');
+                            }
+                        }
+                        return $hasViewAdmins || $hasViewUsers;
+                    })()
+                )
                     <li class="nav-small-cap text-uppercase text-muted fw-semibold small mb-2 px-2 mt-4">
                         {{ __('aside.System_Management') }}
                     </li>
+                    @permission('view-admins')
                     <li class="sidebar-item mb-1">
-                        <a class="sidebar-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 text-decoration-none" href="{{ route('admin.admin.index') }}">
+                        <a class="sidebar-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 text-decoration-none @if(Route::is('admin.admin.*')) active @endif" href="{{ route('admin.admin.index') }}">
                             <i class="ti ti-shield-lock fs-5"></i>
                             <span class="hide-menu">{{ __('aside.admin_index') }}</span>
                         </a>
                     </li>
+                    @endpermission
+                    @permission('view-users')
                     <li class="sidebar-item mb-1">
-                        <a class="sidebar-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 text-decoration-none" href="{{ route('admin.users.index') }}">
+                        <a class="sidebar-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 text-decoration-none @if(Route::is('admin.users.*')) active @endif" href="{{ route('admin.users.index') }}">
                             <i class="ti ti-users-group fs-5"></i>
                             <span class="hide-menu">{{ __('aside.Users') }}</span>
                         </a>
                     </li>
+                    @endpermission
                 @endif
 
-                @if($isAdmin || $isManager || $isSales)
+                @if(
+                    (function() {
+                        if (auth()->guard('admin')->check()) {
+                            $admin = auth()->guard('admin')->user();
+                            if (!$admin->role_id || !$admin->role) return true;
+                            return $admin->hasPermission('view-clients') || $admin->hasPermission('view-deals') || 
+                                   $admin->hasPermission('view-tasks') || $admin->hasPermission('view-leads');
+                        } elseif (auth()->guard('web')->check()) {
+                            $user = auth()->guard('web')->user();
+                            if (!$user || !$user->role) return false;
+                            return $user->hasPermission('view-clients') || $user->hasPermission('view-deals') || 
+                                   $user->hasPermission('view-tasks') || $user->hasPermission('view-leads');
+                        }
+                        return false;
+                    })()
+                )
                     <li class="nav-small-cap text-uppercase text-muted fw-semibold small mb-2 px-2 mt-4">
                         {{ __('aside.crm_operations') }}
                     </li>
 
-                    @if($isAdmin || $isManager)
+                    @permission('create-clients')
                     <li class="sidebar-item mb-1">
                         <a class="sidebar-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 text-decoration-none" href="{{ route('admin.clients.uploadForm') }}">
                             <i class="ti ti-cloud-upload fs-5"></i>
                             <span class="hide-menu">{{ __('aside.admins_clients_upload') }}</span>
                         </a>
                     </li>
-                    @endif
+                    @endpermission
 
+                    @permission('view-clients')
                     <li class="sidebar-item mb-1">
-                        <a class="sidebar-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 text-decoration-none" href="{{ route('admin.clients.index') }}">
+                        <a class="sidebar-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 text-decoration-none @if(Route::is('admin.clients.*')) active @endif" href="{{ route('admin.clients.index') }}">
                             <i class="ti ti-building-store fs-5"></i>
                             <span class="hide-menu">{{ __('aside.Clients') }}</span>
                         </a>
                     </li>
+                    @endpermission
 
+                    @permission('view-leads')
                     <li class="sidebar-item mb-1">
-                        <a class="sidebar-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 text-decoration-none" href="{{ route('admin.deals.index') }}">
+                        <a class="sidebar-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 text-decoration-none @if(Route::is('admin.leads.*')) active @endif" href="{{ route('admin.leads.index') }}">
+                            <i class="ti ti-user-search fs-5"></i>
+                            <span class="hide-menu">{{ __('aside.Leads') }}</span>
+                        </a>
+                    </li>
+                    @endpermission
+
+                    @permission('view-deals')
+                    <li class="sidebar-item mb-1">
+                        <a class="sidebar-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 text-decoration-none @if(Route::is('admin.deals.*')) active @endif" href="{{ route('admin.deals.index') }}">
                             <i class="ti ti-coin fs-5"></i>
                             <span class="hide-menu">{{ __('aside.Deals') }}</span>
                         </a>
                     </li>
+                    @endpermission
 
+                    @permission('view-tasks')
                     <li class="sidebar-item mb-1">
-                        <a class="sidebar-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 text-decoration-none" href="{{ route('admin.tasks.index') }}">
+                        <a class="sidebar-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 text-decoration-none @if(Route::is('admin.tasks.*')) active @endif" href="{{ route('admin.tasks.index') }}">
                             <i class="ti ti-list-check fs-5"></i>
                             <span class="hide-menu">{{ __('aside.Tasks') }}</span>
                         </a>
                     </li>
+                    @endpermission
                 @endif
             </ul>
         </div>

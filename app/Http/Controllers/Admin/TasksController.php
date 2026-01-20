@@ -8,17 +8,20 @@ use App\Models\Task;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use App\Traits\HasAccessFilter;
+use App\Traits\ChecksPermissions;
 use App\Services\DataTables\BaseDataTable;
 
 class TasksController extends Controller
 {
-    use HasAccessFilter;
+    use HasAccessFilter, ChecksPermissions;
 
     /**
      * Display tasks index page with Dashboard Widgets
      */
     public function index()
     {
+        $this->requirePermission('view-tasks');
+        
         // 1. Calculate Stats for Nexus Widgets
         $statsQuery = $this->filterAccess(Task::query(), 'task');
         
@@ -53,16 +56,37 @@ class TasksController extends Controller
      */
  public function data(Request $request)
 {
-    $query = Task::with('user');
-    $query = $this->filterAccess($query, 'task');
+    try {
+        if (!$this->checkPermission('view-tasks')) {
+            return response()->json([
+                'draw' => (int) $request->get('draw', 1),
+                'recordsTotal' => 0,
+                'recordsFiltered' => 0,
+                'data' => [],
+                'error' => 'You do not have permission to view tasks.'
+            ], 200);
+        }
 
-    // Ensure this matches the exact order of columns in your HTML table
-    $columns = ['id', 'title', 'user.name', 'due_date', 'status', 'created_at'];
-    
-    $service = new BaseDataTable($query, $columns, true, 'components.default-buttons-table');
-    $service->setActionProps(['routeName' => 'admin.tasks']);
+        $query = Task::with('user');
+        $query = $this->filterAccess($query, 'task');
 
-    return $service->make($request);
+        // Ensure this matches the exact order of columns in your HTML table
+        $columns = ['id', 'title', 'user.name', 'due_date', 'status', 'created_at'];
+        
+        $service = new BaseDataTable($query, $columns, true, 'components.default-buttons-table');
+        $service->setActionProps(['routeName' => 'admin.tasks']);
+
+        return $service->make($request);
+    } catch (\Exception $e) {
+        \Log::error('TasksController data method error: ' . $e->getMessage());
+        return response()->json([
+            'draw' => (int) $request->get('draw', 1),
+            'recordsTotal' => 0,
+            'recordsFiltered' => 0,
+            'data' => [],
+            'error' => 'An error occurred while loading data: ' . $e->getMessage()
+        ], 200);
+    }
 }
 
     /**
@@ -70,6 +94,8 @@ class TasksController extends Controller
      */
     public function create()
     {
+        $this->requirePermission('create-tasks');
+        
         $users = $this->getAccessibleUsers();
         return view('admin.tasks.create', compact('users'));
     }
@@ -79,6 +105,8 @@ class TasksController extends Controller
      */
     public function store(Request $request)
     {
+        $this->requirePermission('create-tasks');
+        
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
@@ -98,6 +126,8 @@ class TasksController extends Controller
      */
     public function edit($id)
     {
+        $this->requirePermission('edit-tasks');
+        
         $task = Task::findOrFail($id);
         $users = $this->getAccessibleUsers();
         
@@ -109,6 +139,8 @@ class TasksController extends Controller
      */
     public function update(Request $request, $id)
     {
+        $this->requirePermission('edit-tasks');
+        
         $task = Task::findOrFail($id);
 
         $validated = $request->validate([
@@ -130,6 +162,8 @@ class TasksController extends Controller
      */
     public function destroy($id)
     {
+        $this->requirePermission('delete-tasks');
+        
         Task::findOrFail($id)->delete();
 
         return redirect()->route('admin.tasks.index')

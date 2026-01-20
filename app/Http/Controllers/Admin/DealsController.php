@@ -8,18 +8,21 @@ use App\Models\Deal;
 use App\Models\User;
 use App\Models\Client;
 use App\Traits\HasAccessFilter;
+use App\Traits\ChecksPermissions;
 use App\Services\DataTables\BaseDataTable;
 use Illuminate\Support\Facades\DB;
 
 class DealsController extends Controller
 {
-    use HasAccessFilter;
+    use HasAccessFilter, ChecksPermissions;
 
     /**
      * Display the pipeline overview and deals list.
      */
     public function index()
     {
+        $this->requirePermission('view-deals');
+        
         // 1. Dashboard Stats (NexusCRM Widgets)
         $statsQuery = $this->filterAccess(Deal::query(), 'deal');
         
@@ -47,17 +50,38 @@ class DealsController extends Controller
      */
  public function data(Request $request)
 {
-    $query = Deal::with(['client']);
-    $query = $this->filterAccess($query, 'deal');
+    try {
+        if (!$this->checkPermission('view-deals')) {
+            return response()->json([
+                'draw' => (int) $request->get('draw', 1),
+                'recordsTotal' => 0,
+                'recordsFiltered' => 0,
+                'data' => [],
+                'error' => 'You do not have permission to view deals.'
+            ], 200);
+        }
 
-    // Use the custom attributes we created in the Model
-    // Note: 'stage_badge' and 'formatted_amount'
-    $columns = ['id', 'deal_name', 'formatted_amount', 'stage', 'client.name', 'created_at'];
+        $query = Deal::with(['client']);
+        $query = $this->filterAccess($query, 'deal');
 
-    $service = new BaseDataTable($query, $columns, true, 'components.default-buttons-table');
-    $service->setActionProps(['routeName' => 'admin.deals']);
+        // Use the custom attributes we created in the Model
+        // Note: 'stage_badge' and 'formatted_amount'
+        $columns = ['id', 'deal_name', 'formatted_amount', 'stage', 'client.name', 'created_at'];
 
-    return $service->make($request);
+        $service = new BaseDataTable($query, $columns, true, 'components.default-buttons-table');
+        $service->setActionProps(['routeName' => 'admin.deals']);
+
+        return $service->make($request);
+    } catch (\Exception $e) {
+        \Log::error('DealsController data method error: ' . $e->getMessage());
+        return response()->json([
+            'draw' => (int) $request->get('draw', 1),
+            'recordsTotal' => 0,
+            'recordsFiltered' => 0,
+            'data' => [],
+            'error' => 'An error occurred while loading data: ' . $e->getMessage()
+        ], 200);
+    }
 }
 
     /**
@@ -65,6 +89,8 @@ class DealsController extends Controller
      */
     public function create()
     {
+        $this->requirePermission('create-deals');
+        
         $clients = $this->getAccessibleClients();
         $users   = User::all();
 
@@ -76,6 +102,8 @@ class DealsController extends Controller
      */
     public function store(Request $request)
     {
+        $this->requirePermission('create-deals');
+        
         $validated = $request->validate([
             'deal_name'   => 'required|string|max:255',
             'amount'      => 'required|numeric|min:0',
@@ -95,6 +123,8 @@ class DealsController extends Controller
      */
     public function edit($id)
     {
+        $this->requirePermission('edit-deals');
+        
         $deal    = Deal::findOrFail($id);
         $clients = $this->getAccessibleClients();
         $users   = User::all();
@@ -107,6 +137,8 @@ class DealsController extends Controller
      */
     public function update(Request $request, $id)
     {
+        $this->requirePermission('edit-deals');
+        
         $deal = Deal::findOrFail($id);
 
         $validated = $request->validate([
@@ -128,6 +160,8 @@ class DealsController extends Controller
      */
     public function destroy($id)
     {
+        $this->requirePermission('delete-deals');
+        
         $deal = Deal::findOrFail($id);
         $deal->delete();
 

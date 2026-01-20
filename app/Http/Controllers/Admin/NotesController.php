@@ -8,16 +8,19 @@ use App\Models\Note;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use App\Traits\HasAccessFilter;
+use App\Traits\ChecksPermissions;
 use App\Services\DataTables\BaseDataTable;
 
 
 class NotesController extends Controller
 {
-    use HasAccessFilter;
+    use HasAccessFilter, ChecksPermissions;
 
     // Display notes index page
      public function index()
     {
+        $this->requirePermission('view-notes');
+        
         $columns = ['id',  'content', 'user.name', 'created_at'];
         $renderComponents = true; // or false based on your condition
         $customActionsView = 'components.default-buttons-table'; // full view path
@@ -28,21 +31,44 @@ class NotesController extends Controller
     // Datatable AJAX data
     public function data(Request $request)
     {
-        $query = Note::with('user');
+        try {
+            if (!$this->checkPermission('view-notes')) {
+                return response()->json([
+                    'draw' => (int) $request->get('draw', 1),
+                    'recordsTotal' => 0,
+                    'recordsFiltered' => 0,
+                    'data' => [],
+                    'error' => 'You do not have permission to view notes.'
+                ], 200);
+            }
 
-        // Apply role-based filtering (Admin, Manager, Sales)
-        $query = $this->filterAccess($query);
+            $query = Note::with('user');
 
-        $columns = ['id',  'content', 'user.name', 'created_at'];
-        $service = new BaseDataTable($query, $columns, true, 'components.default-buttons-table');
-        $service->setActionProps(['routeName' => 'admin.notes']);
+            // Apply role-based filtering (Admin, Manager, Sales)
+            $query = $this->filterAccess($query);
 
-        return $service->make($request);
+            $columns = ['id',  'content', 'user.name', 'created_at'];
+            $service = new BaseDataTable($query, $columns, true, 'components.default-buttons-table');
+            $service->setActionProps(['routeName' => 'admin.notes']);
+
+            return $service->make($request);
+        } catch (\Exception $e) {
+            \Log::error('NotesController data method error: ' . $e->getMessage());
+            return response()->json([
+                'draw' => (int) $request->get('draw', 1),
+                'recordsTotal' => 0,
+                'recordsFiltered' => 0,
+                'data' => [],
+                'error' => 'An error occurred while loading data: ' . $e->getMessage()
+            ], 200);
+        }
     }
 
     // Show create form
     public function create()
     {
+        $this->requirePermission('create-notes');
+        
         $users = User::all();
         return view('admin.notes.create', compact('users'));
     }
@@ -50,6 +76,8 @@ class NotesController extends Controller
     // Store note
     public function store(Request $request)
     {
+        $this->requirePermission('create-notes');
+        
         $request->validate([
             'title'       => 'required|string|max:255',
             'content'     => 'required|string',
@@ -65,6 +93,8 @@ class NotesController extends Controller
     // Show edit form
     public function edit($id)
     {
+        $this->requirePermission('edit-notes');
+        
         $note = Note::findOrFail($id);
         $users = User::all();
 
@@ -74,6 +104,8 @@ class NotesController extends Controller
     // Update note
     public function update(Request $request, $id)
     {
+        $this->requirePermission('edit-notes');
+        
         $note = Note::findOrFail($id);
 
         $request->validate([
@@ -91,6 +123,8 @@ class NotesController extends Controller
     // Delete note
     public function destroy($id)
     {
+        $this->requirePermission('delete-notes');
+        
         Note::findOrFail($id)->delete();
 
         return redirect()->route('admin.notes.index')

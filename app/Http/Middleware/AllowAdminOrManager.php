@@ -14,12 +14,16 @@ class AllowAdminOrManager
             return $next($request);
         }
 
-        // ✅ Web guard → ONLY Manager role
-        if (
-            Auth::guard('web')->check() &&
-            Auth::guard('web')->user()?->role?->name === 'Manager'
-        ) {
-            return $next($request);
+        // ✅ Web guard → Manager role OR user with admin access permission
+        if (Auth::guard('web')->check()) {
+            $user = Auth::guard('web')->user();
+            
+            if ($user && (
+                $user->role?->name === 'Manager' ||
+                $user->hasPermission('access-admin')
+            )) {
+                return $next($request);
+            }
         }
 
         // ❌ Otherwise deny

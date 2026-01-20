@@ -34,5 +34,37 @@ class AppServiceProvider extends ServiceProvider
     Blade::directive('endrole', function () {
         return "<?php endif; ?>";
     });
+
+    // Check if user has a permission (works for both admin and web guards)
+    Blade::directive('permission', function ($permission) {
+        return "<?php 
+            \$hasPermission = false;
+            if (auth()->guard('admin')->check()) {
+                \$admin = auth()->guard('admin')->user();
+                \$hasPermission = !\$admin->role_id || !\$admin->role ? true : \$admin->hasPermission({$permission});
+            } elseif (auth()->guard('web')->check()) {
+                \$user = auth()->guard('web')->user();
+                \$hasPermission = \$user && \$user->role && \$user->hasPermission({$permission});
+            }
+            if (\$hasPermission): ?>";
+    });
+
+    // Check if user does NOT have a permission
+    Blade::directive('notpermission', function ($permission) {
+        return "<?php 
+            \$hasPermission = false;
+            if (auth()->guard('admin')->check()) {
+                \$admin = auth()->guard('admin')->user();
+                \$hasPermission = !\$admin->role_id || !\$admin->role ? true : \$admin->hasPermission({$permission});
+            } elseif (auth()->guard('web')->check()) {
+                \$user = auth()->guard('web')->user();
+                \$hasPermission = \$user && \$user->role && \$user->hasPermission({$permission});
+            }
+            if (!\$hasPermission): ?>";
+    });
+
+    Blade::directive('endpermission', function () {
+        return "<?php endif; ?>";
+    });
 }
 }

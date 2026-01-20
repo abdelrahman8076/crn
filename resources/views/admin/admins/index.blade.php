@@ -13,10 +13,12 @@
             </nav>
         </div>
         <div class="col-md-6 text-md-end mt-3 mt-md-0">
+            @permission('create-admins')
             <a href="{{ route('admin.admin.create') }}" class="btn btn-primary px-4 py-2 rounded-3 shadow-sm d-inline-flex align-items-center gap-2">
                 <i class="ti ti-plus fs-5"></i> 
                 <span class="fw-bold">{{ __('admins.create_button') }}</span>
             </a>
+            @endpermission
         </div>
     </div>
 
