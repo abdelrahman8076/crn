@@ -64,47 +64,26 @@
         background-color: #1e293b !important;
     }
 
-    [data-bs-theme="dark"] #datatable tbody tr {
-        background-color: #1e293b !important;
-    }
-
-    [data-bs-theme="dark"] #datatable tbody tr:hover {
-        background-color: #334155 !important;
-    }
-
     [data-bs-theme="dark"] #datatable tbody tr:hover td {
         background-color: #334155 !important;
     }
 
-    /* Nexus Soft UI Badges - Explicit Styles to force rendering */
-    .badge.bg-soft-success { 
-        background-color: rgba(16, 185, 129, 0.1) !important; 
-        color: #10b981 !important; 
+    /* Nexus Soft UI Badges */
+    .badge.bg-soft-success { background-color: rgba(16, 185, 129, 0.1) !important; color: #10b981 !important; font-weight: 600; padding: 0.5rem 1.2rem; border-radius: 50rem; }
+    .badge.bg-soft-primary { background-color: rgba(59, 130, 246, 0.1) !important; color: #3b82f6 !important; font-weight: 600; padding: 0.5rem 1.2rem; border-radius: 50rem; }
+    .badge.bg-soft-warning { background-color: rgba(245, 158, 11, 0.1) !important; color: #f59e0b !important; font-weight: 600; padding: 0.5rem 1.2rem; border-radius: 50rem; }
+    .badge.bg-soft-danger { background-color: rgba(239, 68, 68, 0.1) !important; color: #ef4444 !important; font-weight: 600; padding: 0.5rem 1.2rem; border-radius: 50rem; }
+
+    /* Truncation Styling */
+    .view-more-btn {
+        color: #3b82f6;
+        text-decoration: none;
         font-weight: 600;
-        padding: 0.5rem 1.2rem;
-        border-radius: 50rem;
+        cursor: pointer;
+        font-size: 0.75rem;
+        margin-left: 5px;
     }
-    .badge.bg-soft-primary { 
-        background-color: rgba(59, 130, 246, 0.1) !important; 
-        color: #3b82f6 !important; 
-        font-weight: 600;
-        padding: 0.5rem 1.2rem;
-        border-radius: 50rem;
-    }
-    .badge.bg-soft-warning { 
-        background-color: rgba(245, 158, 11, 0.1) !important; 
-        color: #f59e0b !important; 
-        font-weight: 600;
-        padding: 0.5rem 1.2rem;
-        border-radius: 50rem;
-    }
-    .badge.bg-soft-danger { 
-        background-color: rgba(239, 68, 68, 0.1) !important; 
-        color: #ef4444 !important; 
-        font-weight: 600;
-        padding: 0.5rem 1.2rem;
-        border-radius: 50rem;
-    }
+    .view-more-btn:hover { text-decoration: underline; }
 
     /* 2. Mobile "Card" Transformation */
     @media screen and (max-width: 767px) {
@@ -152,10 +131,6 @@
             font-size: 0.8rem;
         }
 
-        [data-bs-theme="dark"] #datatable td:before {
-            color: #cbd5e1 !important;
-        }
-
         #datatable td:last-child {
             text-align: center;
             background: #f9fafb;
@@ -183,6 +158,22 @@
             </tr>
         </thead>
     </table>
+</div>
+
+<div class="modal fade" id="textDetailModal" tabindex="-1" aria-labelledby="textDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header">
+                <h5 class="modal-title" id="textDetailModalLabel">Detail View</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="modalFullContent" style="white-space: pre-wrap; word-break: break-all; color: #1f2937;">
+                </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 {{-- Load Libraries --}}
@@ -219,8 +210,20 @@ $(document).ready(function () {
                 data: '{{ $col }}', 
                 name: '{{ $col }}',
                 render: function(data, type, row) {
-                    // FIX: Return raw data to allow HTML rendering for badges
-                    return data !== null ? data : ''; 
+                    if (data === null || data === '') return '';
+
+                    // Apply 20 character limit only for display
+                    if (type === 'display' && data.toString().length > 20) {
+                        const shortText = data.toString().substring(0, 20);
+                        // Store the full text in a data attribute (escaped)
+                        const fullText = data.toString().replace(/"/g, '&quot;'); 
+                        
+                        return `<span>${shortText}...</span> 
+                                <a href="javascript:void(0)" 
+                                   class="view-more-btn" 
+                                   data-content="${fullText}">more</a>`;
+                    }
+                    return data; 
                 }
             },
             @endforeach
@@ -233,12 +236,22 @@ $(document).ready(function () {
                 searchable: false,
                 className: 'text-center',
                 render: function(data, type, row) {
-                    // FIX: Return raw data to allow HTML rendering for action buttons
                     return data !== null ? data : '';
                 }
             }
             @endif
         ]
+    });
+
+    // 3. Handle click on "more" link
+    $('#datatable').on('click', '.view-more-btn', function(e) {
+        e.preventDefault();
+        const content = $(this).attr('data-content');
+        $('#modalFullContent').text(content); // Use .text() for security unless content is HTML
+        
+        const modalEl = document.getElementById('textDetailModal');
+        const modal = new bootstrap.Modal(modalEl);
+        modal.show();
     });
 });
 </script>

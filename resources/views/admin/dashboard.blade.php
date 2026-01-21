@@ -96,8 +96,8 @@
                                     </div>
                                 </div>
                             </td>
-                            <td class="fw-semibold text-dark">${{ number_format($m['target_total']) }}</td>
-                            <td class="text-primary fw-bold">${{ number_format($m['reached']) }}</td>
+                            <td class="fw-semibold text-dark">{{ number_format($m['target_total']) }}</td>
+                            <td class="text-primary fw-bold">{{ number_format($m['reached']) }}</td>
                             <td>
                                 <div class="progress rounded-pill" style="height: 6px;">
                                     <div class="progress-bar {{ $m['progress'] >= 100 ? 'bg-success' : 'bg-primary' }}" style="width: {{ min($m['progress'], 100) }}%"></div>
@@ -152,11 +152,11 @@
                                     <div class="d-flex justify-content-between">
                                         <div class="text-start">
                                             <small class="text-muted d-block" style="font-size: 9px;">TARGET</small>
-                                            <span class="fw-bold small">${{ number_format($member['target_total']) }}</span>
+                                            <span class="fw-bold small">{{ number_format($member['target_total']) }}</span>
                                         </div>
                                         <div class="text-end">
                                             <small class="text-muted d-block" style="font-size: 9px;">REACHED</small>
-                                            <span class="fw-bold text-primary small">${{ number_format($member['reached']) }}</span>
+                                            <span class="fw-bold text-primary small">{{ number_format($member['reached']) }}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -208,19 +208,19 @@
                         <div class="col-sm-4">
                             <div class="p-3 bg-light rounded-4 border">
                                 <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 10px;">{{ __('users.total_goal') }}</small>
-                                <span class="fs-5 fw-bold text-dark">${{ number_format($myTarget['target_total']) }}</span>
+                                <span class="fs-5 fw-bold text-dark">{{ number_format($myTarget['target_total']) }}</span>
                             </div>
                         </div>
                         <div class="col-sm-4">
                             <div class="p-3 bg-primary bg-opacity-10 rounded-4 border border-primary border-opacity-25">
                                 <small class="text-primary d-block text-uppercase fw-bold" style="font-size: 10px;">{{ __('users.reached') }}</small>
-                                <span class="fs-5 fw-bold text-primary">${{ number_format($myTarget['reached']) }}</span>
+                                <span class="fs-5 fw-bold text-primary">{{ number_format($myTarget['reached']) }}LE</span>
                             </div>
                         </div>
                         <div class="col-sm-4">
                             <div class="p-3 bg-danger bg-opacity-10 rounded-4 border border-danger border-opacity-25">
                                 <small class="text-danger d-block text-uppercase fw-bold" style="font-size: 10px;">{{ __('users.remaining') }}</small>
-                                <span class="fs-5 fw-bold text-danger">${{ number_format($myTarget['remaining']) }}</span>
+                                <span class="fs-5 fw-bold text-danger">{{ number_format($myTarget['remaining']) }}LE</span>
                             </div>
                         </div>
                     </div>
@@ -260,7 +260,7 @@
                             @forelse($targets as $h)
                             <tr>
                                 <td class="ps-4 fw-bold">{{ $h->period }}</td>
-                                <td class="fw-semibold text-dark">${{ number_format($h->target_total) }}</td>
+                                <td class="fw-semibold text-dark">{{ number_format($h->target_total) }}</td>
                                 <td class="pe-4">
                                     <span class="badge rounded-pill {{ $h->is_active ? 'bg-primary' : 'bg-light text-muted' }}">
                                         {{ $h->is_active ? 'Active' : 'Past' }}

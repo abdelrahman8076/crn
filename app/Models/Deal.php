@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
-
+use Illuminate\Support\Facades\DB; // Add this line
 class Deal extends Model
 {
     use HasFactory;
@@ -34,93 +34,72 @@ class Deal extends Model
      * Sync this deal with the responsible user's active target.
      * $previousStage and $previousAmount are the values before the change (if any).
      */
-    public function syncTargets($previousStage = null, $previousAmount = null)
-    {
-        // Determine client and responsible user
-        $client = $this->client ?? \App\Models\Client::find($this->client_id);
-        if (!$client) return;
+public function syncTargets($previousStage = null, $previousAmount = null)
+{
+    $this->loadMissing(['client.assignedSale', 'client.assignedManager']);
+    $client = $this->client;
+    if (!$client) return;
 
-        $user = $client->assignedSale ?? $client->assignedManager ?? null;
-        if (!$user) return;
+    $saleUser = $client->assignedSale;
+    $managerUser = $client->assignedManager;
 
-        // Logging for debugging
-        Log::info('Deal::syncTargets called', [
-            'deal_id' => $this->id,
-            'client_id' => $client->id,
-            'user_id' => $user->id,
-            'current_stage' => $this->stage,
-            'current_amount' => $this->amount,
-            'previous_stage' => $previousStage,
-            'previous_amount' => $previousAmount,
-        ]);
+    // Determine users involved in the deal
+    $usersToSync = collect([$saleUser, $managerUser])->filter()->unique('id');
 
-        // Prefer active target, otherwise fallback to latest target
-        $target = $user->targets()->where('is_active', true)->first();
-        if (!$target) {
-            Log::info('Deal::syncTargets - no active target, falling back to latest', ['user_id' => $user->id]);
-            $target = $user->targets()->orderBy('period', 'desc')->first();
-        }
-        if (!$target) {
-            Log::warning('Deal::syncTargets - no target available for user', ['user_id' => $user->id]);
-            return;
-        }
+    if ($usersToSync->isEmpty()) return;
 
-        Log::info('Deal::syncTargets - target selected', ['target_id' => $target->id, 'target_remaining' => $target->target_remaining]);
+    DB::transaction(function () use ($usersToSync, $previousStage, $previousAmount) {
+        foreach ($usersToSync as $user) {
+            // Find the correct target record for the user
+            $target = $user->targets()->where('is_active', true)->first() 
+                      ?? $user->targets()->orderBy('period', 'desc')->first();
 
-        $beforeRemaining = $target->target_remaining;
-        $beforeTotal = $target->target_total;
-        Log::info('Deal::syncTargets - before values', ['target_id' => $target->id, 'before_remaining' => $beforeRemaining, 'before_total' => $beforeTotal]);
+            if (!$target) continue;
 
-        $currentStage = $this->stage;
-        $currentAmount = is_numeric($this->amount) ? (int) round($this->amount) : 0;
-        $prevStage = $previousStage;
-        $prevAmount = is_numeric($previousAmount) ? (int) round($previousAmount) : 0;
+            $currentAmount = (float) $this->amount;
+            $prevAmount = (float) $previousAmount;
 
-        // Case: created and now closed-won
-        if (is_null($prevStage) && $currentStage === 'closed-won') {
-            $target->target_remaining = max(0, $target->target_remaining - $currentAmount);
-            $target->save();
-            Log::info('Deal::syncTargets - deducted on create closed-won', ['deal_id' => $this->id, 'amount' => $currentAmount, 'new_remaining' => $target->target_remaining]);
-            Log::info('Deal::syncTargets - after save', ['target_id' => $target->id, 'before_remaining' => $beforeRemaining, 'after_remaining' => $target->target_remaining, 'branch' => 'created closed-won']);
-            return;
-        }
-
-        // Case: moved into closed-won
-        if ($prevStage !== 'closed-won' && $currentStage === 'closed-won') {
-            $target->target_remaining = max(0, $target->target_remaining - $currentAmount);
-            $target->save();
-            Log::info('Deal::syncTargets - deducted on stage change to closed-won', ['deal_id' => $this->id, 'amount' => $currentAmount, 'new_remaining' => $target->target_remaining]);
-            Log::info('Deal::syncTargets - after save', ['target_id' => $target->id, 'before_remaining' => $beforeRemaining, 'after_remaining' => $target->target_remaining, 'branch' => 'stage to closed-won']);
-            return;
-        }
-
-        // Case: moved out of closed-won -> add back previous amount
-        if ($prevStage === 'closed-won' && $currentStage !== 'closed-won') {
-            $target->target_remaining = min($target->target_total, $target->target_remaining + $prevAmount);
-            $target->save();
-            Log::info('Deal::syncTargets - reverted on stage change from closed-won', ['deal_id' => $this->id, 'amount' => $prevAmount, 'new_remaining' => $target->target_remaining]);
-            Log::info('Deal::syncTargets - after save', ['target_id' => $target->id, 'before_remaining' => $beforeRemaining, 'after_remaining' => $target->target_remaining, 'branch' => 'revert from closed-won']);
-            return;
-        }
-
-        // Case: both closed-won but amount changed -> adjust by delta
-        if ($prevStage === 'closed-won' && $currentStage === 'closed-won') {
-            $delta = $currentAmount - $prevAmount;
-            // if delta > 0 -> deduct additional amount, if delta < 0 -> add back
-            if ($delta > 0) {
-                $target->target_remaining = max(0, $target->target_remaining - $delta);
-                Log::info('Deal::syncTargets - deducted delta on amount increase', ['deal_id' => $this->id, 'delta' => $delta, 'new_remaining' => $target->target_remaining]);
-            } elseif ($delta < 0) {
-                $target->target_remaining = min($target->target_total, $target->target_remaining + abs($delta));
-                Log::info('Deal::syncTargets - added back delta on amount decrease', ['deal_id' => $this->id, 'delta' => $delta, 'new_remaining' => $target->target_remaining]);
+            /**
+             * 1. Calculate Delta (Difference)
+             * This handles new deals, deleted deals, and amount changes.
+             */
+            $delta = 0;
+            if ($this->stage === 'closed-won' && $previousStage !== 'closed-won') {
+                $delta = $currentAmount;
+            } elseif ($this->stage !== 'closed-won' && $previousStage === 'closed-won') {
+                $delta = -$prevAmount;
+            } elseif ($this->stage === 'closed-won' && $previousStage === 'closed-won') {
+                $delta = $currentAmount - $prevAmount;
             }
-            $target->save();
-            Log::info('Deal::syncTargets - after save', ['target_id' => $target->id, 'before_remaining' => $beforeRemaining, 'after_remaining' => $target->target_remaining, 'branch' => 'delta closed-won']);
-            return;
-        }
 
-        // Nothing to do otherwise
-    }
+            if ($delta !== 0) {
+                $roleName = strtolower($user->role->name ?? '');
+
+                /**
+                 * 2. Apply Strict Separation Logic
+                 */
+                if ($roleName === 'manager') {
+                    // MANAGER TRACKER: Increases total achievement
+                    // Every dollar won is ADDED to subtarget_total
+                    $target->subtarget_total = (float)$target->subtarget_total + $delta;
+                    
+                    // If you also track the gap/remaining for managers:
+                    if (isset($target->subtarget_remaining)) {
+                        $target->subtarget_remaining = max(0, (float)$target->subtarget_remaining - $delta);
+                    }
+                } else {
+                    // SALESPERSON TRACKER: Decreases remaining quota
+                    // Every dollar won is SUBTRACTED from target_remaining
+                    $target->target_remaining = max(0, min($target->target_total, (float)$target->target_remaining - $delta));
+                }
+
+                $target->save();
+                
+                Log::info("SyncTargets: User {$user->id} ({$roleName}) | Delta: {$delta} | New Manager Subtotal: {$target->subtarget_total}");
+            }
+        }
+    });
+}
 
     protected static function booted()
     {

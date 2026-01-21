@@ -73,7 +73,7 @@
 
                 <hr class="my-4">
 
-                <h5 class="mb-3 text-success fw-bold">{{ __('users.set_new_target') }}</h5>
+                {{-- <h5 class="mb-3 text-success fw-bold">{{ __('users.set_new_target') }}</h5> --}}
                 
                 @php
                     // Get the most recent target to show in the form
@@ -81,22 +81,22 @@
                 @endphp
 
                 <div class="row">
-                    <div class="col-sm-6 mb-3">
+                    {{-- <div class="col-sm-6 mb-3">
                         <label for="target_total" class="form-label">{{ __('users.target_amount') }}</label>
                         <div class="input-group">
                             <span class="input-group-text">$</span>
                             <input type="number" name="target_total" id="target_total" class="form-control" value="{{ old('target_total', $latestTarget?->target_total) }}" placeholder="0.00">
                         </div>
-                    </div>
-                    <div class="col-sm-6 mb-3">
+                    </div> --}}
+                    {{-- <div class="col-sm-6 mb-3">
                         <label for="target_period" class="form-label">{{ __('users.target_period') }}</label>
 <input type="date" 
        name="target_period" 
        id="target_period" 
        class="form-control dark-date-input" 
        value="{{ old('target_period', date('Y-m-d')) }}">                    </div>
-                </div>
-                <small class="text-muted d-block mt-n2">{{ __('users.target_logic_hint') }}</small>
+                </div> --}}
+                {{-- <small class="text-muted d-block mt-n2">{{ __('users.target_logic_hint') }}</small> --}}
             </div>
         </div>
 
@@ -104,55 +104,146 @@
             <button type="submit" class="btn btn-primary px-5 fw-bold">
                 <i class="bi bi-save me-1"></i> {{ __('users.update_user_and_targets') }}
             </button>
+            
         </div>
     </form>
+    {{-- Modal for Adding Multiple Targets --}}
+<div class="modal fade" id="addNewTarget" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form action="{{ route('admin.targets.store', $user->id) }}" method="POST" class="modal-content">
+            @csrf
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>{{ __('users.set_new_target') }}</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">{{ __('users.target_amount') }}</label>
+                    <div class="input-group">
+                        <span class="input-group-text">LE</span>
+                        <input type="number" name="target_total" class="form-control" placeholder="0.00" required step="0.01">
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">{{ __('users.target_period') }}</label>
+                    <input type="date" name="target_period" class="form-control" value="{{ date('Y-m-d') }}" required>
+                </div>
+                <div class="alert alert-info py-2 small">
+                    <i class="bi bi-info-circle me-1"></i> {{ __('users.target_logic_hint') }}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('users.cancel') }}</button>
+                <button type="submit" class="btn btn-success px-4">{{ __('users.save_changes') }}</button>
+            </div>
+        </form>
+    </div>
+</div>
 
     {{-- Target History Table --}}
-    <div class="mt-5">
-        <h5 class="mb-3 fw-bold"><i class="bi bi-clock-history me-2"></i>{{ __('users.target_history') }}</h5>
-        <div class="card shadow-sm border-0">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="bg-light">
+{{-- Target History Table --}}
+<div class="mt-5">
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="fw-bold m-0"><i class="bi bi-clock-history me-2"></i>{{ __('users.target_history') }}</h5>
+    {{-- Button to open the "Add Multiple Targets" Modal --}}
+    <button type="button" class="btn btn-success btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#addNewTarget">
+        <i class="bi bi-plus-lg me-1"></i> {{ __('users.set_new_target') }}
+    </button>
+</div>    <div class="card shadow-sm border-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-3">{{ __('users.period') }}</th>
+                        <th>{{ __('users.target_amount') }}</th>
+                        <th>{{ __('users.reached') }}</th>
+                        <th>{{ __('users.progress') }}</th>
+                        <th>{{ __('users.status') }}</th>
+                        <th class="text-end pe-3">{{ __('users.actions') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($user->targets->sortByDesc('period') as $target)
                         <tr>
-                            <th class="ps-3">{{ __('users.period') }}</th>
-                            <th>{{ __('users.target_amount') }}</th>
-                            <th>{{ __('users.reached') }}</th>
-                            <th>{{ __('users.progress') }}</th>
-                            <th class="text-end pe-3">{{ __('users.status') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($user->targets->sortByDesc('period') as $target)
-                            <tr>
-                                <td class="ps-3 fw-bold">{{ \Carbon\Carbon::parse($target->period)->format('F Y') }}</td>
-                                <td>${{ number_format($target->target_total, 2) }}</td>
-                                <td class="text-success">${{ number_format($target->target_total - $target->target_remaining, 2) }}</td>
-                                <td>
-                                    <div class="progress" style="height: 6px; width: 100px;">
-                                        <div class="progress-bar {{ $target->progress >= 100 ? 'bg-success' : 'bg-primary' }}" 
-                                             style="width: {{ $target->progress }}%"></div>
-                                    </div>
-                                    <small>{{ $target->progress }}%</small>
-                                </td>
-                                <td class="text-end pe-3">
-                                    @if($target->is_active)
-                                        <span class="badge bg-success">{{ __('users.active') }}</span>
-                                    @else
-                                        <span class="badge bg-secondary">{{ __('users.archived') }}</span>
+                            <td class="ps-3 fw-bold">{{ \Carbon\Carbon::parse($target->period)->format('F Y') }}</td>
+                            <td>${{ number_format($target->target_total, 2) }}</td>
+                            <td class="text-success">${{ number_format($target->target_total - $target->target_remaining, 2) }}</td>
+                            <td>
+                                <div class="progress" style="height: 6px; width: 100px;">
+                                    <div class="progress-bar {{ $target->progress >= 100 ? 'bg-success' : 'bg-primary' }}" 
+                                         style="width: {{ $target->progress }}%"></div>
+                                </div>
+                                <small>{{ $target->progress }}%</small>
+                            </td>
+                            <td>
+                                @if($target->is_active)
+                                    <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>{{ __('users.active') }}</span>
+                                @else
+                                    <span class="badge bg-secondary">{{ __('users.archived') }}</span>
+                                @endif
+                            </td>
+                            <td class="text-end pe-3">
+                                <div class="btn-group">
+                                    {{-- Edit Button (Triggers Modal) --}}
+
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editTarget{{ $target->id }}">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+
+                                    @if(!$target->is_active)
+                                        <form action="{{ route('admin.targets.activate', $target->id) }}" method="POST" class="ms-1">
+                                            @csrf
+                                            @method('PATCH')
+                                            <button type="submit" class="btn btn-sm btn-outline-primary" title="{{ __('users.set_active') }}">
+                                                <i class="bi bi-play-fill"></i>
+                                            </button>
+                                        </form>
                                     @endif
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="5" class="text-center py-4 text-muted">{{ __('users.no_targets_found') }}</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+                                </div>
+
+                                {{-- Edit Modal --}}
+                                <div class="modal fade" id="editTarget{{ $target->id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <form action="{{ route('admin.targets.update', $target->id) }}" method="POST" class="modal-content">
+                                            @csrf
+                                            @method('PUT')
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">{{ __('users.edit_target') }}</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body text-start">
+                                                <div class="mb-3">
+                                                    <label class="form-label">{{ __('users.target_amount') }}</label>
+                                                    <div class="input-group">
+                                                        <span class="input-group-text">LE</span>
+                                                        <input type="number" name="target_total" class="form-control" value="{{ $target->target_total }}" step="0.01" required>
+                                                    </div>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">{{ __('users.period') }}</label>
+                                                    <input type="date" name="period" class="form-control" value="{{ \Carbon\Carbon::parse($target->period)->format('Y-m-d') }}" required>
+                                                </div>
+                                                
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('users.cancel') }}</button>
+                                                <button type="submit" class="btn btn-primary">{{ __('users.save_changes') }}</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">{{ __('users.no_targets_found') }}</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
     </div>
+</div>
 </div>
 
 <script>

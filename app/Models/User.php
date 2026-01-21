@@ -62,6 +62,7 @@ class User extends Authenticatable
     */
 
     // User belongs to a role (Admin / Manager / Sales)
+    
     public function role()
     {
         return $this->belongsTo(Role::class);
@@ -127,4 +128,5 @@ class User extends Authenticatable
         // Option B: If you just have a 'role' string column on the users table
         // return $this->role === $role;
     }
+    
 }

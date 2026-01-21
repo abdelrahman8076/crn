@@ -63,7 +63,7 @@ class ClientsController extends Controller
     }
     public function index()
     {
-        $columns = ['id', 'name', 'phone', 'email', 'company', 'address', 'source', 'status'];
+        $columns = ['id', 'name', 'phone', 'email', 'company', 'address', 'source', 'status','feedback'];
         $renderComponents = true;
         $customActionsView = 'components.default-buttons-table';
 
@@ -77,7 +77,7 @@ class ClientsController extends Controller
     {
         $query = Client::with(['assignedSale', 'assignedManager']);
         $query = $this->filterAccess($query); // for sales
-        $columns = ['id', 'name', 'phone', 'email', 'company', 'address', 'source', 'status'];
+        $columns = ['id', 'name', 'phone', 'email', 'company', 'address', 'source', 'status','feedback'];
 
         $service = new BaseDataTable(
             $query,
