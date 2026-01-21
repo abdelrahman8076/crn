@@ -14,6 +14,8 @@ use App\Traits\ChecksPermissions;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
+
 
 class UsersController extends Controller
 {
@@ -56,7 +58,7 @@ class UsersController extends Controller
 
             return $service->make($request);
         } catch (\Exception $e) {
-            \Log::error('UsersController data method error: ' . $e->getMessage());
+            Log::error('UsersController data method error: ' . $e->getMessage());
             return response()->json([
                 'draw' => (int) $request->get('draw', 1),
                 'recordsTotal' => 0,
@@ -67,6 +69,53 @@ class UsersController extends Controller
         }
     }
 
+    public function activateTarget(Target $target)
+    {
+        DB::transaction(function () use ($target) {
+            Target::where('user_id', $target->user_id)
+                ->update(['is_active' => false]);
+
+            $target->update(['is_active' => true]);
+        });
+
+        return back()->with('success', __('users.target_activated_successfully'));
+    }
+
+    public function updateTarget(Request $request, Target $target)
+    {
+        $validated = $request->validate([
+            'target_total' => 'required|numeric|min:0',
+            'period' => 'required|date',
+        ]);
+
+        $diff = $validated['target_total'] - $target->target_total;
+        $target->target_remaining += $diff;
+
+        $target->update([
+            'target_total' => $validated['target_total'],
+            'period' => $validated['period'],
+        ]);
+
+        return back()->with('success', __('users.target_updated_successfully'));
+    }
+
+    public function storeTarget(Request $request, User $user)
+    {
+        $validated = $request->validate([
+            'target_total'  => 'required|numeric|min:0',
+            'target_period' => 'required|date',
+        ]);
+
+        $user->targets()->create([
+            'target_total'     => $validated['target_total'],
+            'target_remaining' => $validated['target_total'],
+            'period'           => $validated['target_period'],
+            'is_active'        => false, 
+        ]);
+
+        return back()->with('success', __('users.target_added_successfully'));
+    }
+
     public function create()
     {
         $this->requirePermission('create-users');
@@ -75,47 +124,51 @@ class UsersController extends Controller
         $users = User::all();
         return view('admin.users.create', compact('roles', 'users'));
     }
-public function store(Request $request)
-{
-    $this->requirePermission('create-users');
-    
-    $request->validate([
-        'name' => 'required|string|max:255',
-        'email' => 'required|email|unique:users,email',
-        'password' => 'required|min:6|confirmed',
-        'role_id' => 'required|exists:roles,id',
-        'manager_id' => 'nullable|exists:users,id',
-        'targets.*.amount' => 'nullable|integer|min:1',
-        'targets.*.period' => 'required_with:targets.*.amount|string',
-    ]);
 
-    DB::transaction(function () use ($request) {
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => bcrypt($request->password),
-            'role_id' => $request->role_id,
-            'manager_id' => $request->manager_id,
+    public function store(Request $request)
+    {
+        $this->requirePermission('create-users');
+        
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|min:6|confirmed',
+            'role_id' => 'required|exists:roles,id',
+            'manager_id' => 'nullable|exists:users,id',
+            'targets.*.amount' => 'nullable|numeric|min:1',
+            'targets.*.period' => 'required_with:targets.*.amount|string',
         ]);
 
-        if ($request->has('targets')) {
-            foreach ($request->targets as $targetData) {
-                if (!empty($targetData['amount'])) {
-                    // This calls your existing recursive logic
-                    $this->assignManagerTarget($user, $targetData['amount'], $targetData['period']);
+        $role = Role::findOrFail($request->role_id);
+        $roleName = strtolower($role->name);
+
+        DB::transaction(function () use ($request, $roleName) {
+            $managerId = in_array($roleName, ['admin', 'manager']) ? null : $request->manager_id;
+
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => bcrypt($request->password),
+                'role_id' => $request->role_id,
+                'manager_id' => $managerId,
+            ]);
+
+            if (!in_array($roleName, ['admin', 'manager']) && $request->has('targets')) {
+                foreach ($request->targets as $targetData) {
+                    if (!empty($targetData['amount'])) {
+                        $this->assignManagerTarget($user, $targetData['amount'], $targetData['period']);
+                    }
                 }
             }
-        }
-    });
+        });
 
-    return redirect()->route('admin.users.index')->with('success', __('users.created_successfully'));
-}
+        return redirect()->route('admin.users.index')->with('success', __('users.created_successfully'));
+    }
 
     public function edit($id)
     {
         $this->requirePermission('edit-users');
         
-        // Load ALL targets ordered by period to show history in the view
         $user = User::with(['targets' => function ($q) {
             $q->orderBy('period', 'desc');
         }])->findOrFail($id);
@@ -133,12 +186,7 @@ public function store(Request $request)
     public function update(Request $request, $id)
     {
         $this->requirePermission('edit-users');
-        
         $user = User::findOrFail($id);
-
-        if (!$this->canAccess($user)) {
-            return redirect()->route('admin.users.index')->with('error', 'Unauthorized.');
-        }
 
         $request->validate([
             'name' => 'required|string|max:255',
@@ -146,65 +194,85 @@ public function store(Request $request)
             'password' => 'nullable|min:6|confirmed',
             'role_id' => 'required|exists:roles,id',
             'manager_id' => 'nullable|exists:users,id|not_in:' . $id,
-            'target_total' => 'nullable|integer|min:0',
-            'target_period' => 'required_with:target_total|string',
+            'targets.*.amount' => 'nullable|numeric|min:0',
+            'targets.*.period' => 'required_with:targets.*.amount|string',
         ]);
 
-        DB::transaction(function () use ($request, $user) {
+        $role = Role::findOrFail($request->role_id);
+        $roleName = strtolower($role->name);
+
+        DB::transaction(function () use ($request, $user, $roleName) {
             $user->name = $request->name;
             $user->email = $request->email;
             $user->role_id = $request->role_id;
-            $user->manager_id = $request->manager_id;
+            $user->manager_id = in_array($roleName, ['admin', 'manager']) ? null : $request->manager_id;
 
             if ($request->password) {
                 $user->password = bcrypt($request->password);
             }
             $user->save();
 
-            if ($request->filled('target_total')) {
-                $this->assignManagerTarget($user, $request->target_total, $request->target_period);
+            if (!in_array($roleName, ['admin', 'manager']) && $request->has('targets')) {
+                foreach ($request->targets as $targetData) {
+                    if (!empty($targetData['amount'])) {
+                        $this->assignManagerTarget($user, $targetData['amount'], $targetData['period']);
+                    }
+                }
             }
         });
 
         return redirect()->route('admin.users.index')->with('success', __('users.updated_successfully'));
     }
 
-    /**
-     * Logic: Assigns target to Manager and auto-distributes to their sales team.
-     */
-    public function assignManagerTarget(User $manager, int $managerTarget, string $period)
+    protected function assignManagerTarget($user, $amount, $period)
     {
-        // 1. Update/Create target for the Manager
-        $this->assignTarget($manager, $managerTarget, $period);
+        // 1. Update/Create the target for the current user
+        $user->targets()->updateOrCreate(
+            ['period' => $period],
+            [
+                'target_total' => $amount,
+                'target_remaining' => $amount 
+            ]
+        );
 
-        // 2. Distribute to Sales Team
-        $sales = $manager->salesTeam; 
+        // 2. Reflect up to the Manager
+        if ($user->manager_id) {
+            $manager = User::find($user->manager_id);
+            
+            if ($manager) {
+                // Calculate sum of team targets for this period
+                $teamTotal = Target::whereHas('user', function($query) use ($manager) {
+                    $query->where('manager_id', $manager->id);
+                })
+                ->where('period', $period)
+                ->sum('target_total');
 
-        if ($sales && $sales->count() > 0) {
-            $salesCount = $sales->count();
-            $individualTarget = intval($managerTarget / $salesCount);
+                // Update manager's target
+                $manager->targets()->updateOrCreate(
+                    ['period' => $period],
+                    [
+                        'target_total' => $teamTotal,
+                        'target_remaining' => $teamTotal 
+                    ]
+                );
 
-            foreach ($sales as $sale) {
-                $this->assignTarget($sale, $individualTarget, $period);
+                // Recursive call for higher management levels
+                if ($manager->manager_id) {
+                    $this->assignManagerTarget($manager, $teamTotal, $period);
+                }
             }
         }
     }
 
-    /**
-     * Core logic: Supports multiple targets by using 'period' as a unique key per user.
-     */
     protected function assignTarget(User $user, int $value, string $period)
     {
-        // Determine if this target should be the active one (Current month)
         $currentMonth = Carbon::now()->format('Y-m');
         $isActive = ($period === $currentMonth);
 
-        // If we are setting a new active target, deactivate others
         if ($isActive) {
             Target::where('user_id', $user->id)->update(['is_active' => false]);
         }
 
-        // updateOrCreate ensures we don't have two records for '2024-05' for the same user
         return Target::updateOrCreate(
             [
                 'user_id' => $user->id,
@@ -212,7 +280,7 @@ public function store(Request $request)
             ],
             [
                 'target_total'     => $value,
-                'target_remaining' => $value, // Logic: reset remaining on update, or adjust as needed
+                'target_remaining' => $value,
                 'is_active'        => $isActive,
             ]
         );

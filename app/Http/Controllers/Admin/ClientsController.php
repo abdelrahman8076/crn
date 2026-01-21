@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Auth;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate; // Import this!
+use Illuminate\Support\Facades\Log;
+
 
 
 class ClientsController extends Controller
@@ -68,7 +70,7 @@ class ClientsController extends Controller
     {
         $this->requirePermission('view-clients');
         
-        $columns = ['id', 'name', 'phone', 'email', 'company', 'address', 'source', 'status'];
+        $columns = ['id', 'name', 'phone', 'email', 'company', 'address', 'source', 'status','feedback'];
         $renderComponents = true;
         $customActionsView = 'components.default-buttons-table';
 
@@ -90,6 +92,9 @@ class ClientsController extends Controller
                     'error' => 'You do not have permission to view clients.'
                 ], 200);
             }
+        $query = Client::with(['assignedSale', 'assignedManager']);
+        $query = $this->filterAccess($query); // for sales
+        $columns = ['id', 'name', 'phone', 'email', 'company', 'address', 'source', 'status','feedback'];
 
             $query = Client::with(['assignedSale', 'assignedManager']);
             $query = $this->filterAccess($query); // for sales
@@ -111,7 +116,7 @@ class ClientsController extends Controller
 
             return $service->make($request);
         } catch (\Exception $e) {
-            \Log::error('ClientsController data method error: ' . $e->getMessage());
+            Log::error('ClientsController data method error: ' . $e->getMessage());
             return response()->json([
                 'draw' => (int) $request->get('draw', 1),
                 'recordsTotal' => 0,

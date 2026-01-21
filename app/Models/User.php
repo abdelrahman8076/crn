@@ -62,6 +62,7 @@ class User extends Authenticatable
     */
 
     // User belongs to a role (Admin / Manager / Sales)
+    
     public function role()
     {
         return $this->belongsTo(Role::class);
@@ -169,4 +170,5 @@ class User extends Authenticatable
 
         return $count === count($permissionSlugs);
     }
+    
 }

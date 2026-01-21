@@ -146,14 +146,14 @@
                     </li>
                     @endpermission
 
-                    @permission('view-leads')
+                    {{-- @permission('view-leads')
                     <li class="sidebar-item mb-1">
                         <a class="sidebar-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 text-decoration-none @if(Route::is('admin.leads.*')) active @endif" href="{{ route('admin.leads.index') }}">
                             <i class="ti ti-user-search fs-5"></i>
                             <span class="hide-menu">{{ __('aside.Leads') }}</span>
                         </a>
                     </li>
-                    @endpermission
+                    @endpermission --}}
 
                     @permission('view-deals')
                     <li class="sidebar-item mb-1">

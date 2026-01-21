@@ -65,6 +65,7 @@ Route::prefix('admin')
             Route::get('admin/{admin}/edit', [AdminController::class, 'edit'])->name('admin.edit');
             Route::put('admin/{admin}', [AdminController::class, 'update'])->name('admin.update');
             Route::delete('admin/{admin}', [AdminController::class, 'destroy'])->name('admin.destroy');
+
             // USER CRUD
             Route::get('users', [UsersController::class, 'index'])->name('users.index');
             Route::get('users/data', [UsersController::class, 'data'])->name('users.data');
@@ -73,6 +74,11 @@ Route::prefix('admin')
             Route::get('users/{id}/edit', [UsersController::class, 'edit'])->name('users.edit');
             Route::put('users/{id}', [UsersController::class, 'update'])->name('users.update');
             Route::delete('users/{id}', [UsersController::class, 'destroy'])->name('users.destroy');
+            Route::patch('/admin/targets/{target}/activate', [UsersController::class, 'activateTarget'])
+                ->name('targets.activate');
+            Route::put('/admin/targets/{target}', [UsersController::class, 'updateTarget'])->name('targets.update');
+            Route::post('/admin/users/{user}/targets', [UsersController::class, 'storeTarget'])->name('targets.store');
+            
             // Add all the admin routes you want here
         });
 
@@ -90,8 +96,9 @@ Route::prefix('admin')
         });
         Route::get('/clients/data', [ClientsController::class, 'data'])->name('clients.data');
         Route::get('clients', [ClientsController::class, 'index'])->name('clients.index');
-                    Route::get('clients/{client}/edit', [ClientsController::class, 'edit'])->name('clients.edit');
-                                Route::put('clients/{client}', [ClientsController::class, 'update'])->name('clients.update');
+        Route::get('clients/{client}/edit', [ClientsController::class, 'edit'])->name('clients.edit');
+        Route::put('clients/{client}', [ClientsController::class, 'update'])->name('clients.update');
+        // routes/web.php or admin.php
 
 
 
@@ -132,11 +139,4 @@ Route::prefix('admin')
         Route::get('tasks/{id}/edit', [TasksController::class, 'edit'])->name('tasks.edit');
         Route::put('tasks/{id}', [TasksController::class, 'update'])->name('tasks.update');
         Route::delete('tasks/{id}', [TasksController::class, 'destroy'])->name('destroy');
-
-        
-
-
-
-
-
     });

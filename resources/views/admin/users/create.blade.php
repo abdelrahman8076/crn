@@ -77,37 +77,36 @@
                         </div>
                     </div>
 
-                    <hr class="my-4">
+                    {{-- This container will be hidden if Manager/Admin is selected --}}
+                    <div id="targets_section">
+                        <hr class="my-4">
 
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="text-success fw-bold mb-0">{{ __('users.monthly_targets') }}</h5>
-                        <button type="button" class="btn btn-sm btn-outline-success" id="add-target-row">
-                            <i class="bi bi-plus-lg"></i> {{ __('users.add_another_month') }}
-                        </button>
-                    </div>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="text-success fw-bold mb-0">{{ __('users.monthly_targets') }}</h5>
+                            <button type="button" class="btn btn-sm btn-outline-success" id="add-target-row">
+                                <i class="bi bi-plus-lg"></i> {{ __('users.add_another_month') }}
+                            </button>
+                        </div>
 
-                    <div id="target-rows-container">
-                        {{-- First Row (Default) --}}
-                        <div class="row g-2 target-row mb-2">
-                            <div class="col-md-6">
-                                <div class="input-group">
-                                    <span class="input-group-text">$</span>
-                                    <input type="number" name="targets[0][amount]" class="form-control" placeholder="Target Amount">
+                        <div id="target-rows-container">
+                            {{-- First Row (Default) --}}
+                            <div class="row g-2 target-row mb-2">
+                                <div class="col-md-6">
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" name="targets[0][amount]" class="form-control" placeholder="Target Amount">
+                                    </div>
+                                </div>
+                                <div class="col-md-5">
+                                    <input type="month" name="targets[0][period]" class="form-control" value="{{ date('Y-m') }}">
+                                </div>
+                                <div class="col-md-1">
+                                    <button type="button" class="btn btn-outline-danger w-100 remove-row" disabled>X</button>
                                 </div>
                             </div>
-                            <div class="col-md-5">
-                                <input type="date" 
-       name="targets[0][period]" 
-       id="target_period" 
-       class="form-control dark-date-input" 
-        value="{{ date('Y-m') }}">
-                            </div>
-                            <div class="col-md-1">
-                                <button type="button" class="btn btn-outline-danger w-100 remove-row" disabled>X</button>
-                            </div>
                         </div>
+                        <small class="text-muted">{{ __('users.multiple_targets_help') }}</small>
                     </div>
-                    <small class="text-muted">{{ __('users.multiple_targets_help') }}</small>
                 </div>
             </div>
         </div>
@@ -124,21 +123,30 @@
     document.addEventListener('DOMContentLoaded', function () {
         const roleSelect = document.getElementById('role_id');
         const managerContainer = document.getElementById('manager_container');
+        const targetsSection = document.getElementById('targets_section');
         const container = document.getElementById('target-rows-container');
         const addBtn = document.getElementById('add-target-row');
         let rowIdx = 1;
 
-        // 1. Toggle Manager Field
-        function toggleManagerField() {
+        // Toggle visibility based on Role
+        function toggleFieldsByRole() {
             const selectedOption = roleSelect.options[roleSelect.selectedIndex];
             const roleName = selectedOption ? selectedOption.getAttribute('data-name') : '';
-            managerContainer.style.display = (roleName === 'manager' || roleName === 'admin') ? 'none' : 'block';
+            
+            // If the role is manager or admin, hide manager assignment and targets
+            if (roleName === 'manager' || roleName === 'admin') {
+                managerContainer.style.display = 'none';
+                targetsSection.style.display = 'none';
+            } else {
+                managerContainer.style.display = 'block';
+                targetsSection.style.display = 'block';
+            }
         }
 
-        roleSelect.addEventListener('change', toggleManagerField);
-        toggleManagerField();
+        roleSelect.addEventListener('change', toggleFieldsByRole);
+        toggleFieldsByRole(); // Initialize on load
 
-        // 2. Dynamic Target Rows
+        // Dynamic Target Rows
         addBtn.addEventListener('click', () => {
             const newRow = document.createElement('div');
             newRow.className = 'row g-2 target-row mb-2';
@@ -150,7 +158,7 @@
                     </div>
                 </div>
                 <div class="col-md-5">
-                    <input type="date" name="targets[${rowIdx}][period]" class="form-control dark-date-input" value="{{ date('Y-m') }}">
+                    <input type="month" name="targets[${rowIdx}][period]" class="form-control" value="{{ date('Y-m') }}">
                 </div>
                 <div class="col-md-1">
                     <button type="button" class="btn btn-outline-danger w-100 remove-row">X</button>
@@ -160,7 +168,7 @@
             rowIdx++;
         });
 
-        // 3. Remove Row
+        // Remove Row
         container.addEventListener('click', (e) => {
             if (e.target.closest('.remove-row')) {
                 e.target.closest('.target-row').remove();

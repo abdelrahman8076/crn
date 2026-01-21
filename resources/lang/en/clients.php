@@ -16,6 +16,7 @@ return [
     'business_details' => 'Business & Assignment',
 
     // Form Fields
+    'client_list' => 'Leads List',
     'name' => 'Full Name',
     'email' => 'Email Address',
     'phone' => 'Phone / WhatsApp',

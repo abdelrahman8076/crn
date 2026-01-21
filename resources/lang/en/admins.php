@@ -61,7 +61,27 @@ return [
 
 
 
-
+'title' => 'Admins',
+    'edit_title' => 'Edit Admin Account',
+    'name' => 'Name',
+    'email' => 'Email Address',
+    'password' => 'Password',
+    'confirm_password' => 'Confirm Password',
+    'leave_blank' => 'Leave blank to keep current',
+    'password_hint' => 'Leave blank if you do not want to change the password.',
+    'role' => 'Role',
+    'permissions' => 'Permissions',
+    'select_all' => 'Select All',
+    'deselect_all' => 'Deselect All',
+    'no_permissions_available' => 'No permissions available. Please run the permissions seeder.',
+    'permissions_help' => 'Select permissions for this admin\'s role. Permissions are assigned to the role, not the individual admin.',
+    'update' => 'Update Admin Account',
+    
+    // Additional common terms you might need
+    'create_title' => 'Create New Admin',
+    'save' => 'Save Changes',
+    'cancel' => 'Cancel',
+    'dashboard' => 'Dashboard',
 
 
 ];

@@ -109,6 +109,7 @@ class DashboardController extends Controller
                 $managerViewData = $this->formatManagerWithTeam($managerModel);
             }
         }
+        $myTarget = $allTargetsData->where('id', $user->id)->first();
 
         $data = [
             'totalUsers'   => (int) User::count(),
@@ -116,44 +117,53 @@ class DashboardController extends Controller
             'totalLeads'   => (int) $totalLeads,
             'totalDeals'   => (int) $totalDeals,
             'allTargets'   => $allTargetsData,
+            'myTarget'     => $myTarget, // Pass it explicitly here
         ];
 
         return view('admin.dashboard', compact('data', 'isSuperAdmin', 'managersData', 'managerViewData'));
     }
 
-    private function formatManagerWithTeam($manager)
-    {
-        $active = $manager->targets->first();
-        $reached = $active ? ($active->target_total - $active->target_remaining) : 0;
-        
-        return [
-            'id'           => $manager->id,
-            'manager_name' => $manager->name,
-            'target_total' => $active->target_total ?? 0,
-            'reached'      => max(0, $reached), // Prevent negative numbers
-            'progress'     => $active->progress ?? 0,
-            'remaining'    => $active->target_remaining ?? 0,
-            'period'       => $active->period ?? 'N/A',
-            'team'         => $manager->salesTeam->map(fn($s) => $this->formatUserData($s))->toArray(),
-        ];
-    }
+   private function formatManagerWithTeam($manager)
+{
+    $active = $manager->targets->first();
+    $reached = $active ? ($active->target_total - $active->target_remaining) : 0;
+    
+    return [
+        'id'           => $manager->id,
+        'manager_name' => $manager->name,
+        'role'         => $manager->role?->name ?? 'Manager', // Added for table consistency
+        'target_total' => $active->target_total ?? 0,
+        'reached'      => max(0, $reached),
+        'progress'     => $active->progress ?? 0,
+        'remaining'    => $active->target_remaining ?? 0,
+        // --- NEW SUBTARGET FIELDS ---
+        'subtarget_total'     => $active->subtarget_total ?? 0,
+        'subtarget_remaining' => $active->subtarget_remaining ?? 0,
+        // ----------------------------
+        'period'       => $active->period ?? 'N/A',
+        'team'         => $manager->salesTeam->map(fn($s) => $this->formatUserData($s))->toArray(),
+    ];
+}
 
-    private function formatUserData($u)
-    {
-        $active = $u->targets->first();
-        $reached = $active ? ($active->target_total - $active->target_remaining) : 0;
+private function formatUserData($u)
+{
+    $active = $u->targets->first();
+    // Use target_total - target_remaining for reached amount
+    $reached = $active ? ($active->target_total - $active->target_remaining) : 0;
 
-        return [
-            'id'           => $u->id,
-            'user_name'    => $u->name,
-            'role'         => $u->role?->name ?? 'N/A',
-            'target_total' => $active->target_total ?? 0,
-            'reached'      => max(0, $reached),
-            'progress'     => $active->progress ?? 0,
-            'remaining'    => $active->target_remaining ?? 0,
-            'period'       => $active->period ?? 'N/A',
-        ];
-    }
+    return [
+        'id'           => $u->id,
+        'user_name'    => $u->name,
+        'role'         => $u->role?->name ?? 'N/A',
+        'target_total' => (float)($active->target_total ?? 0),
+        'reached'      => (float)max(0, $reached),
+        'progress'     => (float)($active->progress ?? 0),
+        'remaining'    => (float)($active->target_remaining ?? 0),
+        'subtarget_total' => (float)($active->subtarget_total ?? 0), // Needed for Manager Chart
+        'period'       => $active->period ?? 'N/A',
+    ];
+
+}
 
     private function getLoggedUser()
     {
