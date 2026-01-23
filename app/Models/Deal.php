@@ -77,25 +77,16 @@ public function syncTargets($previousStage = null, $previousAmount = null)
 
                 /**
                  * 2. Apply Strict Separation Logic
+                 * For both Sales and Manager, we update target_remaining
+                 * (decrease remaining when deal is won)
                  */
-                if ($roleName === 'manager') {
-                    // MANAGER TRACKER: Increases total achievement
-                    // Every dollar won is ADDED to subtarget_total
-                    $target->subtarget_total = (float)$target->subtarget_total + $delta;
-                    
-                    // If you also track the gap/remaining for managers:
-                    if (isset($target->subtarget_remaining)) {
-                        $target->subtarget_remaining = max(0, (float)$target->subtarget_remaining - $delta);
-                    }
-                } else {
-                    // SALESPERSON TRACKER: Decreases remaining quota
-                    // Every dollar won is SUBTRACTED from target_remaining
-                    $target->target_remaining = max(0, min($target->target_total, (float)$target->target_remaining - $delta));
-                }
+                // SALESPERSON & MANAGER TRACKER: Decreases remaining quota
+                // Every dollar won is SUBTRACTED from target_remaining
+                $target->target_remaining = max(0, min($target->target_total, (float)$target->target_remaining - $delta));
 
                 $target->save();
                 
-                Log::info("SyncTargets: User {$user->id} ({$roleName}) | Delta: {$delta} | New Manager Subtotal: {$target->subtarget_total}");
+                Log::info("SyncTargets: User {$user->id} ({$roleName}) | Delta: {$delta} | New Remaining: {$target->target_remaining}");
             }
         }
     });

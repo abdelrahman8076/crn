@@ -13,7 +13,7 @@ return [
     'save' => 'حفظ المستخدم',
     'cancel' => 'إلغاء',
     'back' => 'رجوع',
-
+'performance_history' => 'سجل الأداء',
     // Basic info
     'basic_info' => 'المعلومات الأساسية',
     'name' => 'الاسم',

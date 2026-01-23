@@ -22,7 +22,13 @@ class AdminController extends Controller
 
     public function index()
     {
-        $this->requirePermission('view-admins');
+        // Allow Managers to access without permission check
+        $user = \Illuminate\Support\Facades\Auth::guard('web')->user();
+        $isManager = $user && strtolower($user->role?->name ?? '') === 'manager';
+        
+        if (!$isManager) {
+            $this->requirePermission('view-admins');
+        }
         
         $columns = ['id', 'name', 'email'];
         $renderComponents = true; // or false based on your condition
@@ -33,7 +39,11 @@ class AdminController extends Controller
     public function data(Request $request)
     {
         try {
-            if (!$this->checkPermission('view-admins')) {
+            // Allow Managers to access without permission check
+            $user = \Illuminate\Support\Facades\Auth::guard('web')->user();
+            $isManager = $user && strtolower($user->role?->name ?? '') === 'manager';
+            
+            if (!$isManager && !$this->checkPermission('view-admins')) {
                 return response()->json([
                     'draw' => (int) $request->get('draw', 1),
                     'recordsTotal' => 0,
@@ -70,7 +80,8 @@ class AdminController extends Controller
     {
         $this->requirePermission('create-admins');
         
-        $roles = Role::all();
+        // Only show Manager and Sales roles for selection
+        $roles = Role::whereIn('name', ['Manager', 'Sales'])->get();
         $permissions = Permission::whereIn('slug', [
             // Users
             'view-users', 'create-users', 'edit-users', 'delete-users',
@@ -149,7 +160,8 @@ class AdminController extends Controller
     {
         $this->requirePermission('edit-admins');
         
-        $roles = Role::all();
+        // Only show Manager and Sales roles for selection
+        $roles = Role::whereIn('name', ['Manager', 'Sales'])->get();
         $permissions = Permission::whereIn('slug', [
             // Users
             'view-users', 'create-users', 'edit-users', 'delete-users',

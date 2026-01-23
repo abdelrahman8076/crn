@@ -18,7 +18,21 @@ class LeadsController extends Controller
 
     public function index()
     {
-        $this->requirePermission('view-leads');
+        // Allow Sales and Manager users to view leads without permission check
+        // Permissions are only for Admin roles
+        $user = Auth::guard('web')->user();
+        $admin = Auth::guard('admin')->user();
+        
+        if (!$admin && $user) {
+            // For web guard users (Sales/Manager), allow access if they have Sales or Manager role
+            if (!in_array($user->role?->name, ['Sales', 'Manager'])) {
+                // For other roles, require permission
+                $this->requirePermission('view-leads');
+            }
+        } else {
+            // For admin guard, require permission
+            $this->requirePermission('view-leads');
+        }
         
         $columns = ['id', 'title', 'source', 'status', 'client.name'];
         $renderComponents = true; // or false based on your condition
@@ -31,7 +45,20 @@ class LeadsController extends Controller
     public function data(Request $request)
     {
         try {
-            if (!$this->checkPermission('view-leads')) {
+            // Allow Sales and Manager users to view leads without permission check
+            $user = Auth::guard('web')->user();
+            $admin = Auth::guard('admin')->user();
+            
+            $hasAccess = false;
+            if ($admin) {
+                $hasAccess = $this->checkPermission('view-leads');
+            } elseif ($user && in_array($user->role?->name, ['Sales', 'Manager'])) {
+                $hasAccess = true; // Sales and Manager can always view leads
+            } else {
+                $hasAccess = $this->checkPermission('view-leads');
+            }
+            
+            if (!$hasAccess) {
                 return response()->json([
                     'draw' => (int) $request->get('draw', 1),
                     'recordsTotal' => 0,

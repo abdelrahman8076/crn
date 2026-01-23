@@ -43,8 +43,7 @@ class AdminAuthController extends Controller
             // Check if user has admin access permission or is Manager/Sales role
             if ($user && (
                 $user->hasPermission('access-admin') || 
-                in_array($user->role?->name, ['Manager', 'Sales']) ||
-                $user->role?->name === 'Admin'
+                in_array($user->role?->name, ['Manager', 'Sales'])
             )) {
                 // Store that this user is accessing admin panel
                 session(['user_type' => 'user_admin']);

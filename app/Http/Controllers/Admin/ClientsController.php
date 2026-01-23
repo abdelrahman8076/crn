@@ -23,6 +23,28 @@ class ClientsController extends Controller
     use HasAccessFilter, ChecksPermissions;
 
     /**
+     * Sales/Manager can edit only clients they can access (based on filterAccess()).
+     */
+    private function assertWebUserCanAccessClient(int $clientId): void
+    {
+        if (Auth::guard('admin')->check()) {
+            return; // admin guard handled by permissions elsewhere
+        }
+
+        $user = Auth::guard('web')->user();
+        $role = strtolower($user->role?->name ?? '');
+        if (!$user || !in_array($role, ['sales', 'manager'])) {
+            return; // other roles rely on permission checks
+        }
+
+        $query = Client::query()->where('id', $clientId);
+        $query = $this->filterAccess($query, 'client');
+        if (!$query->exists()) {
+            abort(403, 'You do not have permission to perform this action.');
+        }
+    }
+
+    /**
      * LIST PAGE
      */
     public function downloadTemplate()
@@ -68,7 +90,25 @@ class ClientsController extends Controller
     }
     public function index()
     {
-        $this->requirePermission('view-clients');
+        // Allow Sales and Manager users to view clients without permission check
+        // Permissions are only for Admin roles
+        $user = Auth::guard('web')->user();
+        $admin = Auth::guard('admin')->user();
+        
+        if (!$admin && $user) {
+            // For web guard users (Sales/Manager), allow access if they have Sales or Manager role
+            if (!in_array($user->role?->name, ['Sales', 'Manager'])) {
+                // For other roles, require permission (check both view-clients and view-leads)
+                if (!$this->checkPermission('view-clients') && !$this->checkPermission('view-leads')) {
+                    abort(403, 'You do not have permission to perform this action.');
+                }
+            }
+        } else {
+            // For admin guard, require permission (check both view-clients and view-leads)
+            if (!$this->checkPermission('view-clients') && !$this->checkPermission('view-leads')) {
+                abort(403, 'You do not have permission to perform this action.');
+            }
+        }
         
         $columns = ['id', 'name', 'phone', 'email', 'company', 'address', 'source', 'status','feedback'];
         $renderComponents = true;
@@ -83,7 +123,20 @@ class ClientsController extends Controller
     public function data(Request $request)
     {
         try {
-            if (!$this->checkPermission('view-clients')) {
+            // Allow Sales and Manager users to view clients without permission check
+            $user = Auth::guard('web')->user();
+            $admin = Auth::guard('admin')->user();
+            
+            $hasAccess = false;
+            if ($admin) {
+                $hasAccess = $this->checkPermission('view-clients') || $this->checkPermission('view-leads');
+            } elseif ($user && in_array($user->role?->name, ['Sales', 'Manager'])) {
+                $hasAccess = true; // Sales and Manager can always view clients
+            } else {
+                $hasAccess = $this->checkPermission('view-clients') || $this->checkPermission('view-leads');
+            }
+            
+            if (!$hasAccess) {
                 return response()->json([
                     'draw' => (int) $request->get('draw', 1),
                     'recordsTotal' => 0,
@@ -109,7 +162,7 @@ class ClientsController extends Controller
 
             $service->setActionProps([
                 'routeName' => 'admin.clients',
-                'deleteFlag' => true,
+                // 'deleteFlag' => true,
                 'checkNullFields' => ['assigned_to_sale', 'assigned_to_manager']
 
             ]);
@@ -132,7 +185,27 @@ class ClientsController extends Controller
      */
     public function create()
     {
-        $this->requirePermission('create-clients');
+        // Allow Sales and Manager users to create clients without permission check
+        $user = Auth::guard('web')->user();
+        $admin = Auth::guard('admin')->user();
+        
+        if ($user) {
+            $role = strtolower($user->role?->name ?? '');
+            if (!in_array($role, ['sales', 'manager'])) {
+                // For other roles, require permission (check both create-clients and create-leads)
+                if (!$this->checkPermission('create-clients') && !$this->checkPermission('create-leads')) {
+                    abort(403, 'You do not have permission to perform this action.');
+                }
+            }
+            // Sales/Manager can proceed without permission check
+        } elseif ($admin) {
+            // Admin guard - require permission (check both create-clients and create-leads)
+            if (!$this->checkPermission('create-clients') && !$this->checkPermission('create-leads')) {
+                abort(403, 'You do not have permission to perform this action.');
+            }
+        } else {
+            abort(403, 'You do not have permission to perform this action.');
+        }
         
         $users = User::with('role')->get();
         $sales = User::sales()->get();
@@ -147,20 +220,44 @@ class ClientsController extends Controller
      */
     public function store(Request $request)
     {
-        $this->requirePermission('create-clients');
+        // Allow Sales and Manager users to create clients without permission check
+        $webUser = Auth::guard('web')->user();
+        $admin = Auth::guard('admin')->user();
+        
+        if ($webUser) {
+            $webRole = strtolower($webUser->role?->name ?? '');
+            if (!in_array($webRole, ['sales', 'manager'])) {
+                // For other roles, require permission (check both create-clients and create-leads)
+                if (!$this->checkPermission('create-clients') && !$this->checkPermission('create-leads')) {
+                    abort(403, 'You do not have permission to perform this action.');
+                }
+            }
+            // Sales/Manager can proceed without permission check
+        } elseif ($admin) {
+            // Admin guard - require permission (check both create-clients and create-leads)
+            if (!$this->checkPermission('create-clients') && !$this->checkPermission('create-leads')) {
+                abort(403, 'You do not have permission to perform this action.');
+            }
+        } else {
+            abort(403, 'You do not have permission to perform this action.');
+        }
         
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'company' => 'nullable|string|max:255',
             'address' => 'nullable|string|max:500',
             'feedback' => 'nullable|string|max:255',
-            'email' => 'nullable|email',
-            'phone' => 'nullable|string|max:30',
+            'email' => 'nullable|email|max:255',
+            'phone' => ['required', 'string', 'max:30', 'regex:/^[0-9]+$/'],
             // Form uses 'assigned_to_user' for sales select; map it to DB field 'assigned_to_sale' after validation
             'assigned_to_user' => 'nullable|exists:users,id',
             'assigned_to_manager' => 'nullable|exists:users,id',
             'source' => 'required|string|max:255',
             'status' => 'required|string|max:50',
+        ], [
+            'phone.required' => 'The phone number field is required.',
+            'phone.regex' => 'The phone field must contain only numbers.',
+            'email.email' => 'Please enter a valid email address.',
         ]);
 
         // Map form field to DB field
@@ -169,10 +266,17 @@ class ClientsController extends Controller
             unset($data['assigned_to_user']);
         }
 
-        // If logged in via web guard and role is Manager, auto-assign
-        $webUser = Auth::guard('web')->user();
-        if ($webUser && $webUser->role?->name === 'Manager') {
-            $data['assigned_to_manager'] = $webUser->id;
+        // If logged in via web guard, auto-assign ownership to enforce scope
+        if ($webUser) {
+            if ($webRole === 'manager') {
+                $data['assigned_to_manager'] = $webUser->id;
+            } elseif ($webRole === 'sales') {
+                $data['assigned_to_sale'] = $webUser->id;
+                // If sales belongs to a manager, keep it consistent
+                if (!empty($webUser->manager_id)) {
+                    $data['assigned_to_manager'] = $webUser->manager_id;
+                }
+            }
         }
 
         Client::create($data);
@@ -188,7 +292,31 @@ class ClientsController extends Controller
      */
     public function edit($id)
     {
-        $this->requirePermission('edit-clients');
+        // Allow Sales and Manager users to edit clients without permission check
+        $user = Auth::guard('web')->user();
+        $admin = Auth::guard('admin')->user();
+        
+        // Check if user is Sales/Manager via web guard
+        if ($user) {
+            $role = strtolower($user->role?->name ?? '');
+            if (in_array($role, ['sales', 'manager'])) {
+                // Verify they can access this client
+                $this->assertWebUserCanAccessClient((int) $id);
+                // Allow access, skip permission check
+            } else {
+                // For other roles, require permission (check both edit-clients and edit-leads)
+                if (!$this->checkPermission('edit-clients') && !$this->checkPermission('edit-leads')) {
+                    abort(403, 'You do not have permission to perform this action.');
+                }
+            }
+        } elseif ($admin) {
+            // Admin guard - require permission (check both edit-clients and edit-leads)
+            if (!$this->checkPermission('edit-clients') && !$this->checkPermission('edit-leads')) {
+                abort(403, 'You do not have permission to perform this action.');
+            }
+        } else {
+            abort(403, 'You do not have permission to perform this action.');
+        }
         
         $client = Client::findOrFail($id);
         $users = User::with('role')->get();
@@ -204,7 +332,31 @@ class ClientsController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $this->requirePermission('edit-clients');
+        // Allow Sales and Manager users to update clients without permission check
+        $user = Auth::guard('web')->user();
+        $admin = Auth::guard('admin')->user();
+        
+        // Check if user is Sales/Manager via web guard
+        if ($user) {
+            $role = strtolower($user->role?->name ?? '');
+            if (in_array($role, ['sales', 'manager'])) {
+                // Verify they can access this client
+                $this->assertWebUserCanAccessClient((int) $id);
+                // Allow access, skip permission check
+            } else {
+                // For other roles, require permission (check both edit-clients and edit-leads)
+                if (!$this->checkPermission('edit-clients') && !$this->checkPermission('edit-leads')) {
+                    abort(403, 'You do not have permission to perform this action.');
+                }
+            }
+        } elseif ($admin) {
+            // Admin guard - require permission (check both edit-clients and edit-leads)
+            if (!$this->checkPermission('edit-clients') && !$this->checkPermission('edit-leads')) {
+                abort(403, 'You do not have permission to perform this action.');
+            }
+        } else {
+            abort(403, 'You do not have permission to perform this action.');
+        }
         
         $client = Client::findOrFail($id);
 
@@ -213,13 +365,16 @@ class ClientsController extends Controller
             'company' => 'nullable|string|max:255',
             'address' => 'nullable|string|max:500',
             'feedback' => 'nullable|string|max:255',
-
-            'email' => 'nullable|email',
-            'phone' => 'nullable|string|max:30',
+            'email' => 'nullable|email|max:255',
+            'phone' => ['required', 'string', 'max:30', 'regex:/^[0-9]+$/'],
             'assigned_to_user' => 'nullable|exists:users,id',
             'assigned_to_manager' => 'nullable|exists:users,id',
             'source' => 'required|string|max:255',
             'status' => 'required|string|max:50',
+        ], [
+            'phone.required' => 'The phone number field is required.',
+            'phone.regex' => 'The phone field must contain only numbers.',
+            'email.email' => 'Please enter a valid email address.',
         ]);
 
         // Map form field to DB field

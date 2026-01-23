@@ -23,9 +23,15 @@ class UsersController extends Controller
 
     public function index()
     {
-        $this->requirePermission('view-users');
+        // Allow Managers to access without permission check
+        $user = \Illuminate\Support\Facades\Auth::guard('web')->user();
+        $isManager = $user && strtolower($user->role?->name ?? '') === 'manager';
         
-        $columns = ['id', 'name', 'email', 'created_at'];
+        if (!$isManager) {
+            $this->requirePermission('view-users');
+        }
+        
+        $columns = ['id', 'name', 'email', 'role.name', 'created_at'];
         $renderComponents = true;
         $customActionsView = 'components.default-buttons-table';
 
@@ -35,7 +41,11 @@ class UsersController extends Controller
     public function data(Request $request)
     {
         try {
-            if (!$this->checkPermission('view-users')) {
+            // Allow Managers to access without permission check
+            $user = \Illuminate\Support\Facades\Auth::guard('web')->user();
+            $isManager = $user && strtolower($user->role?->name ?? '') === 'manager';
+            
+            if (!$isManager && !$this->checkPermission('view-users')) {
                 return response()->json([
                     'draw' => (int) $request->get('draw', 1),
                     'recordsTotal' => 0,
@@ -45,10 +55,10 @@ class UsersController extends Controller
                 ], 200);
             }
 
-            $query = User::query();
+            $query = User::with('role');
             $query = $this->filterAccess($query);
 
-            $columns = ['id', 'name', 'email', 'created_at'];
+            $columns = ['id', 'name', 'email', 'role.name', 'created_at'];
 
             $service = new BaseDataTable($query, $columns, true, 'components.default-buttons-table');
             $service->setActionProps([
@@ -120,8 +130,11 @@ class UsersController extends Controller
     {
         $this->requirePermission('create-users');
         
-        $roles = Role::all();
-        $users = User::all();
+        // Only show Manager and Sales roles for selection
+        $roles = Role::whereIn('name', ['Manager', 'Sales'])->get();
+        // Only show Manager role users for manager selection
+        $managerRole = Role::where('name', 'Manager')->first();
+        $users = $managerRole ? User::where('role_id', $managerRole->id)->get() : collect();
         return view('admin.users.create', compact('roles', 'users'));
     }
 
@@ -143,7 +156,7 @@ class UsersController extends Controller
         $roleName = strtolower($role->name);
 
         DB::transaction(function () use ($request, $roleName) {
-            $managerId = in_array($roleName, ['admin', 'manager']) ? null : $request->manager_id;
+            $managerId = ($roleName === 'manager') ? null : $request->manager_id;
 
             $user = User::create([
                 'name' => $request->name,
@@ -177,8 +190,11 @@ class UsersController extends Controller
             return redirect()->route('admin.users.index')->with('error', 'No Access.');
         }
 
-        $roles = Role::all();
-        $users = User::where('id', '!=', $user->id)->get();
+        // Only show Manager and Sales roles for selection
+        $roles = Role::whereIn('name', ['Manager', 'Sales'])->get();
+        // Only show Manager role users for manager selection
+        $managerRole = Role::where('name', 'Manager')->first();
+        $users = $managerRole ? User::where('role_id', $managerRole->id)->where('id', '!=', $user->id)->get() : collect();
 
         return view('admin.users.edit', compact('user', 'roles', 'users'));
     }
@@ -205,14 +221,14 @@ class UsersController extends Controller
             $user->name = $request->name;
             $user->email = $request->email;
             $user->role_id = $request->role_id;
-            $user->manager_id = in_array($roleName, ['admin', 'manager']) ? null : $request->manager_id;
+            $user->manager_id = ($roleName === 'manager') ? null : $request->manager_id;
 
             if ($request->password) {
                 $user->password = bcrypt($request->password);
             }
             $user->save();
 
-            if (!in_array($roleName, ['admin', 'manager']) && $request->has('targets')) {
+            if ($roleName !== 'manager' && $request->has('targets')) {
                 foreach ($request->targets as $targetData) {
                     if (!empty($targetData['amount'])) {
                         $this->assignManagerTarget($user, $targetData['amount'], $targetData['period']);

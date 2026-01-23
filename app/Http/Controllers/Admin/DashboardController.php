@@ -43,6 +43,7 @@ class DashboardController extends Controller
             $totalClients = Client::count();
             $totalLeads   = Lead::count();
             $totalDeals   = Deal::count();
+            $totalClosedDealsAmount = Deal::where('stage', 'closed-won')->sum('amount');
         } else {
             // Scope Clients
             $totalClients = Client::where(function (Builder $query) use ($roleName, $user, $targetUserIds) {
@@ -70,6 +71,17 @@ class DashboardController extends Controller
                     $query->where('assigned_to_sale', $user->id);
                 }
             })->count();
+
+            // Calculate total closed deals amount
+            $totalClosedDealsAmount = Deal::where('stage', 'closed-won')
+                ->whereHas('client', function (Builder $query) use ($roleName, $user, $targetUserIds) {
+                    if ($roleName === 'Manager') {
+                        $query->whereIn('assigned_to_manager', $targetUserIds);
+                    } else {
+                        $query->where('assigned_to_sale', $user->id);
+                    }
+                })
+                ->sum('amount');
         }
 
         // --- 3. Targets Data for Tables ---
@@ -116,6 +128,7 @@ class DashboardController extends Controller
             'totalClients' => (int) $totalClients,
             'totalLeads'   => (int) $totalLeads,
             'totalDeals'   => (int) $totalDeals,
+            'totalClosedDealsAmount' => (float) ($totalClosedDealsAmount ?? 0),
             'allTargets'   => $allTargetsData,
             'myTarget'     => $myTarget, // Pass it explicitly here
         ];
@@ -127,6 +140,18 @@ class DashboardController extends Controller
 {
     $active = $manager->targets->first();
     $reached = $active ? ($active->target_total - $active->target_remaining) : 0;
+    
+    // Calculate total closed deals amount for manager
+    $closedDealsAmount = Deal::where('stage', 'closed-won')
+        ->whereHas('client', function (Builder $query) use ($manager) {
+            $teamIds = $manager->salesTeam()->pluck('id')->toArray() ?? [];
+            $allUserIds = array_merge([$manager->id], $teamIds);
+            $query->where(function ($q) use ($manager, $allUserIds) {
+                $q->where('assigned_to_manager', $manager->id)
+                  ->orWhereIn('assigned_to_sale', $allUserIds);
+            });
+        })
+        ->sum('amount');
     
     return [
         'id'           => $manager->id,
@@ -141,6 +166,7 @@ class DashboardController extends Controller
         'subtarget_remaining' => $active->subtarget_remaining ?? 0,
         // ----------------------------
         'period'       => $active->period ?? 'N/A',
+        'closed_deals_amount' => (float)$closedDealsAmount, // Total amount of closed deals
         'team'         => $manager->salesTeam->map(fn($s) => $this->formatUserData($s))->toArray(),
     ];
 }
@@ -150,6 +176,34 @@ private function formatUserData($u)
     $active = $u->targets->first();
     // Use target_total - target_remaining for reached amount
     $reached = $active ? ($active->target_total - $active->target_remaining) : 0;
+
+    // Calculate total closed deals amount for this user
+    $closedDealsAmount = 0;
+    $roleName = $u->role?->name ?? '';
+    
+    if ($roleName === 'Manager') {
+        // Manager: sum of closed deals from their clients or their team's clients
+        $closedDealsAmount = Deal::where('stage', 'closed-won')
+            ->whereHas('client', function (Builder $query) use ($u) {
+                $teamIds = $u->salesTeam()->pluck('id')->toArray() ?? [];
+                $allUserIds = array_merge([$u->id], $teamIds);
+                $query->where(function ($q) use ($u, $allUserIds) {
+                    $q->where('assigned_to_manager', $u->id)
+                      ->orWhereIn('assigned_to_sale', $allUserIds);
+                });
+            })
+            ->sum('amount');
+    } elseif ($roleName === 'Sales') {
+        // Sales: sum of closed deals from their assigned clients
+        $closedDealsAmount = Deal::where('stage', 'closed-won')
+            ->whereHas('client', function (Builder $query) use ($u) {
+                $query->where('assigned_to_sale', $u->id);
+            })
+            ->sum('amount');
+    } else {
+        // Admin or other roles: sum all closed deals
+        $closedDealsAmount = Deal::where('stage', 'closed-won')->sum('amount');
+    }
 
     return [
         'id'           => $u->id,
@@ -161,6 +215,7 @@ private function formatUserData($u)
         'remaining'    => (float)($active->target_remaining ?? 0),
         'subtarget_total' => (float)($active->subtarget_total ?? 0), // Needed for Manager Chart
         'period'       => $active->period ?? 'N/A',
+        'closed_deals_amount' => (float)$closedDealsAmount, // Total amount of closed deals
     ];
 
 }

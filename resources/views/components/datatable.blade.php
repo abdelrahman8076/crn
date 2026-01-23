@@ -150,7 +150,7 @@
         <thead>
             <tr>
                 @foreach ($columns as $col)
-                    <th>{{ __("deals.$col") != "deals.$col" ? __("deals.$col") : (__("tasks.$col") != "tasks.$col" ? __("tasks.$col") : ucwords(str_replace(['.', '_'], ' ', $col))) }}</th>
+                    <th>{{ __("deals.$col") != "deals.$col" ? __("deals.$col") : (__("tasks.$col") != "tasks.$col" ? __("tasks.$col") : (__("users.$col") != "users.$col" ? __("users.$col") : ucwords(str_replace(['.', '_'], ' ', $col)))) }}</th>
                 @endforeach
                 @if ($renderComponents && !empty($customActionsView))
                     <th class="text-center">Actions</th>

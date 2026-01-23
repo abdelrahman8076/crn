@@ -20,7 +20,17 @@ class TasksController extends Controller
      */
     public function index()
     {
-        $this->requirePermission('view-tasks');
+        // Allow Sales and Manager users to view tasks without permission check
+        $user = Auth::guard('web')->user();
+        $admin = Auth::guard('admin')->user();
+        
+        if (!$admin && $user) {
+            if (!in_array(strtolower($user->role?->name ?? ''), ['sales', 'manager'])) {
+                $this->requirePermission('view-tasks');
+            }
+        } else {
+            $this->requirePermission('view-tasks');
+        }
         
         // 1. Calculate Stats for Nexus Widgets
         $statsQuery = $this->filterAccess(Task::query(), 'task');
@@ -57,7 +67,20 @@ class TasksController extends Controller
  public function data(Request $request)
 {
     try {
-        if (!$this->checkPermission('view-tasks')) {
+        // Allow Sales and Manager users to view tasks without permission check
+        $user = Auth::guard('web')->user();
+        $admin = Auth::guard('admin')->user();
+        
+        $hasAccess = false;
+        if ($admin) {
+            $hasAccess = $this->checkPermission('view-tasks');
+        } elseif ($user && in_array(strtolower($user->role?->name ?? ''), ['sales', 'manager'])) {
+            $hasAccess = true;
+        } else {
+            $hasAccess = $this->checkPermission('view-tasks');
+        }
+        
+        if (!$hasAccess) {
             return response()->json([
                 'draw' => (int) $request->get('draw', 1),
                 'recordsTotal' => 0,
@@ -94,7 +117,17 @@ class TasksController extends Controller
      */
     public function create()
     {
-        $this->requirePermission('create-tasks');
+        // Allow Sales and Manager users to create tasks without permission check
+        $user = Auth::guard('web')->user();
+        $admin = Auth::guard('admin')->user();
+        
+        if (!$admin && $user) {
+            if (!in_array(strtolower($user->role?->name ?? ''), ['sales', 'manager'])) {
+                $this->requirePermission('create-tasks');
+            }
+        } else {
+            $this->requirePermission('create-tasks');
+        }
         
         $users = $this->getAccessibleUsers();
         return view('admin.tasks.create', compact('users'));
@@ -105,7 +138,17 @@ class TasksController extends Controller
      */
     public function store(Request $request)
     {
-        $this->requirePermission('create-tasks');
+        // Allow Sales and Manager users to create tasks without permission check
+        $user = Auth::guard('web')->user();
+        $admin = Auth::guard('admin')->user();
+        
+        if (!$admin && $user) {
+            if (!in_array(strtolower($user->role?->name ?? ''), ['sales', 'manager'])) {
+                $this->requirePermission('create-tasks');
+            }
+        } else {
+            $this->requirePermission('create-tasks');
+        }
         
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -126,7 +169,24 @@ class TasksController extends Controller
      */
     public function edit($id)
     {
-        $this->requirePermission('edit-tasks');
+        // Allow Sales and Manager users to edit tasks without permission check
+        $user = Auth::guard('web')->user();
+        $admin = Auth::guard('admin')->user();
+        
+        if ($user) {
+            $role = strtolower($user->role?->name ?? '');
+            if (in_array($role, ['sales', 'manager'])) {
+                // Allow access, skip permission check
+                // The task will be filtered by filterAccess in the view
+            } else {
+                $this->requirePermission('edit-tasks');
+            }
+        } elseif ($admin) {
+            // Admin guard - require permission
+            $this->requirePermission('edit-tasks');
+        } else {
+            abort(403, 'You do not have permission to perform this action.');
+        }
         
         $task = Task::findOrFail($id);
         $users = $this->getAccessibleUsers();
@@ -139,7 +199,24 @@ class TasksController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $this->requirePermission('edit-tasks');
+        // Allow Sales and Manager users to update tasks without permission check
+        $user = Auth::guard('web')->user();
+        $admin = Auth::guard('admin')->user();
+        
+        if ($user) {
+            $role = strtolower($user->role?->name ?? '');
+            if (in_array($role, ['sales', 'manager'])) {
+                // Allow access, skip permission check
+                // The task will be filtered by filterAccess
+            } else {
+                $this->requirePermission('edit-tasks');
+            }
+        } elseif ($admin) {
+            // Admin guard - require permission
+            $this->requirePermission('edit-tasks');
+        } else {
+            abort(403, 'You do not have permission to perform this action.');
+        }
         
         $task = Task::findOrFail($id);
 

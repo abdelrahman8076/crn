@@ -21,7 +21,17 @@ class DealsController extends Controller
      */
     public function index()
     {
-        $this->requirePermission('view-deals');
+        // Allow Sales and Manager users to view deals without permission check
+        $user = \Illuminate\Support\Facades\Auth::guard('web')->user();
+        $admin = \Illuminate\Support\Facades\Auth::guard('admin')->user();
+        
+        if (!$admin && $user) {
+            if (!in_array(strtolower($user->role?->name ?? ''), ['sales', 'manager'])) {
+                $this->requirePermission('view-deals');
+            }
+        } else {
+            $this->requirePermission('view-deals');
+        }
         
         // 1. Dashboard Stats (NexusCRM Widgets)
         $statsQuery = $this->filterAccess(Deal::query(), 'deal');
@@ -51,7 +61,20 @@ class DealsController extends Controller
  public function data(Request $request)
 {
     try {
-        if (!$this->checkPermission('view-deals')) {
+        // Allow Sales and Manager users to view deals without permission check
+        $user = \Illuminate\Support\Facades\Auth::guard('web')->user();
+        $admin = \Illuminate\Support\Facades\Auth::guard('admin')->user();
+        
+        $hasAccess = false;
+        if ($admin) {
+            $hasAccess = $this->checkPermission('view-deals');
+        } elseif ($user && in_array(strtolower($user->role?->name ?? ''), ['sales', 'manager'])) {
+            $hasAccess = true;
+        } else {
+            $hasAccess = $this->checkPermission('view-deals');
+        }
+        
+        if (!$hasAccess) {
             return response()->json([
                 'draw' => (int) $request->get('draw', 1),
                 'recordsTotal' => 0,
@@ -89,7 +112,17 @@ class DealsController extends Controller
      */
     public function create()
     {
-        $this->requirePermission('create-deals');
+        // Allow Sales and Manager users to create deals without permission check
+        $user = \Illuminate\Support\Facades\Auth::guard('web')->user();
+        $admin = \Illuminate\Support\Facades\Auth::guard('admin')->user();
+        
+        if (!$admin && $user) {
+            if (!in_array(strtolower($user->role?->name ?? ''), ['sales', 'manager'])) {
+                $this->requirePermission('create-deals');
+            }
+        } else {
+            $this->requirePermission('create-deals');
+        }
         
         $clients = $this->getAccessibleClients();
         $users   = User::all();
@@ -102,7 +135,17 @@ class DealsController extends Controller
      */
     public function store(Request $request)
     {
-        $this->requirePermission('create-deals');
+        // Allow Sales and Manager users to create deals without permission check
+        $user = \Illuminate\Support\Facades\Auth::guard('web')->user();
+        $admin = \Illuminate\Support\Facades\Auth::guard('admin')->user();
+        
+        if (!$admin && $user) {
+            if (!in_array(strtolower($user->role?->name ?? ''), ['sales', 'manager'])) {
+                $this->requirePermission('create-deals');
+            }
+        } else {
+            $this->requirePermission('create-deals');
+        }
         
         $validated = $request->validate([
             'deal_name'   => 'required|string|max:255',
@@ -123,7 +166,24 @@ class DealsController extends Controller
      */
     public function edit($id)
     {
-        $this->requirePermission('edit-deals');
+        // Allow Sales and Manager users to edit deals without permission check
+        $user = \Illuminate\Support\Facades\Auth::guard('web')->user();
+        $admin = \Illuminate\Support\Facades\Auth::guard('admin')->user();
+        
+        if ($user) {
+            $role = strtolower($user->role?->name ?? '');
+            if (in_array($role, ['sales', 'manager'])) {
+                // Allow access, skip permission check
+                // The deal will be filtered by filterAccess in the view
+            } else {
+                $this->requirePermission('edit-deals');
+            }
+        } elseif ($admin) {
+            // Admin guard - require permission
+            $this->requirePermission('edit-deals');
+        } else {
+            abort(403, 'You do not have permission to perform this action.');
+        }
         
         $deal    = Deal::findOrFail($id);
         $clients = $this->getAccessibleClients();
@@ -137,7 +197,24 @@ class DealsController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $this->requirePermission('edit-deals');
+        // Allow Sales and Manager users to update deals without permission check
+        $user = \Illuminate\Support\Facades\Auth::guard('web')->user();
+        $admin = \Illuminate\Support\Facades\Auth::guard('admin')->user();
+        
+        if ($user) {
+            $role = strtolower($user->role?->name ?? '');
+            if (in_array($role, ['sales', 'manager'])) {
+                // Allow access, skip permission check
+                // The deal will be filtered by filterAccess
+            } else {
+                $this->requirePermission('edit-deals');
+            }
+        } elseif ($admin) {
+            // Admin guard - require permission
+            $this->requirePermission('edit-deals');
+        } else {
+            abort(403, 'You do not have permission to perform this action.');
+        }
         
         $deal = Deal::findOrFail($id);
 

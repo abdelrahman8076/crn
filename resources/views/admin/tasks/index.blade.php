@@ -89,12 +89,19 @@
                 </div>
 
                 <div class="d-flex gap-2">
-                    @permission('create-tasks')
+                    @php
+                        $webUser = auth()->guard('web')->user() ?: (session('admin_user_id') ? \App\Models\User::find(session('admin_user_id')) : null);
+                        $webRole = strtolower($webUser?->role?->name ?? '');
+                        $canCreateTask = auth()->guard('admin')->check() 
+                            ? (auth()->guard('admin')->user()->role_id ? auth()->guard('admin')->user()->hasPermission('create-tasks') : true)
+                            : (in_array($webRole, ['sales', 'manager']) || ($webUser && $webUser->hasPermission('create-tasks')));
+                    @endphp
+                    @if($canCreateTask)
                         <a href="{{ route('admin.tasks.create') }}" class="btn btn-primary px-4 py-2 shadow-sm d-flex align-items-center rounded-pill">
                             <i class="ti ti-plus me-1 fs-5"></i> 
                             <span class="fw-bold small">{{ __('tasks.create_button') }}</span>
                         </a>
-                    @endpermission
+                    @endif
                 </div>
             </div>
         </div>

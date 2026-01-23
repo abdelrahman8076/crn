@@ -74,12 +74,19 @@
                 </div>
 
                 <div class="d-flex gap-2">
-                    @permission('create-deals')
+                    @php
+                        $webUser = auth()->guard('web')->user() ?: (session('admin_user_id') ? \App\Models\User::find(session('admin_user_id')) : null);
+                        $webRole = strtolower($webUser?->role?->name ?? '');
+                        $canCreateDeal = auth()->guard('admin')->check() 
+                            ? (auth()->guard('admin')->user()->role_id ? auth()->guard('admin')->user()->hasPermission('create-deals') : true)
+                            : (in_array($webRole, ['sales', 'manager']) || ($webUser && $webUser->hasPermission('create-deals')));
+                    @endphp
+                    @if($canCreateDeal)
                     <a href="{{ route('admin.deals.create') }}" class="btn btn-primary px-4 py-2 shadow-sm d-flex align-items-center">
                         <i class="ti ti-plus me-1 fs-5"></i> 
                         <span class="fw-bold small">{{ __('deals.create_title') }}</span>
                     </a>
-                    @endpermission
+                    @endif
                 </div>
             </div>
         </div>

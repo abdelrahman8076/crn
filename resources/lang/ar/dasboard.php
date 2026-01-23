@@ -1,6 +1,13 @@
 <?php
 
 return [
+    'period' => 'الفترة',
+    'target' => 'المستهدف',
+    'achieved' => 'المحقق',
+    'status' => 'الحالة',
+    'no_history_found' => 'لم يتم العثور على سجلات سابقة.',
+    'completed' => 'مكتمل',
+    'pending' => 'قيد الانتظار',
     'users' => 'المستخدمون',
     'clients' => 'العملاء',
     'leads' => 'الفرص',
@@ -18,4 +25,17 @@ return [
     'reached' => 'المحقق',
     'remaining' => 'المتبقي',
     'team_performance_monitor' => 'مراقب أداء الفريق',
+    'users' => 'إجمالي المستخدمين',
+    'clients' => 'إجمالي العملاء',
+    'deals' => 'إجمالي الصفقات',
+    'team_performance_monitor' => 'مراقب أداء الفريق',
+    'member_name' => 'اسم العضو',
+    'target_total' => 'إجمالي الهدف',
+    'reached' => 'المحقق',
+    'progress' => 'التقدم',
+    'action' => 'الإجراء', // <--- This is the key you requested
+    'view_team' => 'عرض الفريق',
+    'team_members_for' => 'أعضاء الفريق لـ',
+    'no_team_data' => 'لا توجد بيانات فريق لهذا المدير.',
+    'performance_history' => 'سجل الأداء',
 ];

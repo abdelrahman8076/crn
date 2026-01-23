@@ -52,6 +52,7 @@
                     <h5 class="mb-3 text-primary fw-bold">{{ __('users.assignment_info') }}</h5>
 
                     <div class="row">
+                        @if(!auth()->guard('admin')->check())
                         <div class="col-md-6 mb-3">
                             <label class="form-label">{{ __('users.role') }} *</label>
                             <select name="role_id" id="role_id" class="form-select @error('role_id') is-invalid @enderror" required>
@@ -63,8 +64,11 @@
                                 @endforeach
                             </select>
                         </div>
+                        @else
+                        <input type="hidden" name="role_id" id="role_id" value="{{ old('role_id', $roles->first()->id ?? '') }}">
+                        @endif
 
-                        <div class="col-md-6 mb-3" id="manager_container">
+                        <div class="{{ !auth()->guard('admin')->check() ? 'col-md-6' : 'col-md-12' }} mb-3" id="manager_container">
                             <label class="form-label">{{ __('users.manager') }}</label>
                             <select name="manager_id" id="manager_id" class="form-select">
                                 <option value="">{{ __('users.select_manager') }}</option>
@@ -130,21 +134,26 @@
 
         // Toggle visibility based on Role
         function toggleFieldsByRole() {
-            const selectedOption = roleSelect.options[roleSelect.selectedIndex];
-            const roleName = selectedOption ? selectedOption.getAttribute('data-name') : '';
-            
-            // If the role is manager or admin, hide manager assignment and targets
-            if (roleName === 'manager' || roleName === 'admin') {
-                managerContainer.style.display = 'none';
-                targetsSection.style.display = 'none';
-            } else {
-                managerContainer.style.display = 'block';
-                targetsSection.style.display = 'block';
+            // Check if roleSelect is a select element (not hidden input for admins)
+            if (roleSelect && roleSelect.tagName === 'SELECT') {
+                const selectedOption = roleSelect.options[roleSelect.selectedIndex];
+                const roleName = selectedOption ? selectedOption.getAttribute('data-name') : '';
+                
+                // If the role is manager, hide manager assignment and targets
+                if (roleName === 'manager') {
+                    managerContainer.style.display = 'none';
+                    targetsSection.style.display = 'none';
+                } else {
+                    managerContainer.style.display = 'block';
+                    targetsSection.style.display = 'block';
+                }
             }
         }
 
-        roleSelect.addEventListener('change', toggleFieldsByRole);
-        toggleFieldsByRole(); // Initialize on load
+        if (roleSelect && roleSelect.tagName === 'SELECT') {
+            roleSelect.addEventListener('change', toggleFieldsByRole);
+            toggleFieldsByRole(); // Initialize on load
+        }
 
         // Dynamic Target Rows
         addBtn.addEventListener('click', () => {

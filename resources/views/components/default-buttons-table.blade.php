@@ -18,6 +18,37 @@
 @endphp
 
 @php
+    // Helper function to get current user (from web guard or session)
+    if (!function_exists('getCurrentUser')) {
+        function getCurrentUser() {
+            // First try web guard
+            $user = auth()->guard('web')->user();
+            if ($user) {
+                return $user;
+            }
+            // Then try session admin_user_id
+            if (session('admin_user_id')) {
+                $user = \App\Models\User::find(session('admin_user_id'));
+                if ($user) {
+                    return $user;
+                }
+            }
+            return null;
+        }
+    }
+    
+    // Helper function to check if user is Sales or Manager
+    if (!function_exists('isSalesOrManager')) {
+        function isSalesOrManager() {
+            $user = getCurrentUser();
+            if (!$user || !$user->role) {
+                return false;
+            }
+            $role = strtolower($user->role->name ?? '');
+            return in_array($role, ['sales', 'manager']);
+        }
+    }
+    
     // Helper function to check permission for both guards
     if (!function_exists('checkPermission')) {
         function checkPermission($permission) {
@@ -36,24 +67,42 @@
     $canEdit = false;
     $canDeletePermission = false;
     
+    // Check if current user is Sales or Manager
+    $isSalesOrManager = isSalesOrManager();
+    
     if (str_contains($routeName ?? '', 'users')) {
         $canEdit = checkPermission('edit-users');
         $canDeletePermission = checkPermission('delete-users');
     } elseif (str_contains($routeName ?? '', 'admin')) {
         $canEdit = checkPermission('edit-admins');
         $canDeletePermission = checkPermission('delete-admins');
-    } elseif (str_contains($routeName ?? '', 'clients')) {
-        $canEdit = checkPermission('edit-clients');
-        $canDeletePermission = checkPermission('delete-clients');
-    } elseif (str_contains($routeName ?? '', 'leads')) {
-        $canEdit = checkPermission('edit-leads');
-        $canDeletePermission = checkPermission('delete-leads');
+    } elseif (str_contains($routeName ?? '', 'clients') || str_contains($routeName ?? '', 'leads')) {
+        // Sales/Manager should be able to edit their own Leads (clients)
+        if ($isSalesOrManager) {
+            $canEdit = true;
+            $canDeletePermission = false;
+        } else {
+            $canEdit = checkPermission('edit-clients') || checkPermission('edit-leads');
+            $canDeletePermission = checkPermission('delete-clients') || checkPermission('delete-leads');
+        }
     } elseif (str_contains($routeName ?? '', 'deals')) {
-        $canEdit = checkPermission('edit-deals');
-        $canDeletePermission = checkPermission('delete-deals');
+        // Sales/Manager should be able to edit deals
+        if ($isSalesOrManager) {
+            $canEdit = true;
+            $canDeletePermission = false;
+        } else {
+            $canEdit = checkPermission('edit-deals');
+            $canDeletePermission = checkPermission('delete-deals');
+        }
     } elseif (str_contains($routeName ?? '', 'tasks')) {
-        $canEdit = checkPermission('edit-tasks');
-        $canDeletePermission = checkPermission('delete-tasks');
+        // Sales/Manager should be able to edit tasks
+        if ($isSalesOrManager) {
+            $canEdit = true;
+            $canDeletePermission = false;
+        } else {
+            $canEdit = checkPermission('edit-tasks');
+            $canDeletePermission = checkPermission('delete-tasks');
+        }
     } elseif (str_contains($routeName ?? '', 'notes')) {
         $canEdit = true; // Add notes permissions if needed
         $canDeletePermission = true;
@@ -80,8 +129,67 @@
 
 <div class="btn-group" role="group">
 
-  @if ($canEdit && $editRoute && Route::has($editRoute))
-        <a href="{{ route($editRoute, $id) }}" class="btn btn-sm btn-outline-primary">
+  @if ($canEdit && $editRoute && $id)
+        @php
+            // Try to find the correct route
+            $routeExists = Route::has($editRoute);
+            $finalEditRoute = $editRoute;
+            
+            if (!$routeExists) {
+                // Try alternative route names
+                $alternatives = [
+                    str_replace('admin.', '', $editRoute), // Remove admin. prefix
+                ];
+                
+                foreach ($alternatives as $altRoute) {
+                    if (Route::has($altRoute)) {
+                        $finalEditRoute = $altRoute;
+                        $routeExists = true;
+                        break;
+                    }
+                }
+            }
+            
+            // If route exists, use route() helper, otherwise construct URL manually
+            if ($routeExists) {
+                try {
+                    $editUrl = route($finalEditRoute, $id);
+                } catch (\Exception $e) {
+                    // Fallback if route() fails
+                    $baseRoute = str_replace(['admin.', '.edit'], '', $editRoute);
+                    $editUrl = url('/admin/' . $baseRoute . '/' . $id . '/edit');
+                }
+            } else {
+                // Fallback: construct URL manually based on routeName
+                $baseRoute = str_replace(['admin.', '.edit'], '', $editRoute);
+                // Handle different route patterns
+                if (str_contains($routeName, 'clients')) {
+                    $editUrl = url('/admin/clients/' . $id . '/edit');
+                } elseif (str_contains($routeName, 'deals')) {
+                    $editUrl = url('/admin/deals/' . $id . '/edit');
+                } elseif (str_contains($routeName, 'tasks')) {
+                    $editUrl = url('/admin/tasks/' . $id . '/edit');
+                } else {
+                    $editUrl = url('/admin/' . $baseRoute . '/' . $id . '/edit');
+                }
+            }
+        @endphp
+        <a href="{{ $editUrl }}" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-pencil-square"></i> {{ __('admins.edit') }}
+        </a>
+    @elseif($isSalesOrManager && $id && str_contains($routeName ?? '', 'clients'))
+        {{-- Force show edit button for Sales/Manager on clients page --}}
+        <a href="{{ url('/admin/clients/' . $id . '/edit') }}" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-pencil-square"></i> {{ __('admins.edit') }}
+        </a>
+    @elseif($isSalesOrManager && $id && str_contains($routeName ?? '', 'deals'))
+        {{-- Force show edit button for Sales/Manager on deals page --}}
+        <a href="{{ url('/admin/deals/' . $id . '/edit') }}" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-pencil-square"></i> {{ __('admins.edit') }}
+        </a>
+    @elseif($isSalesOrManager && $id && str_contains($routeName ?? '', 'tasks'))
+        {{-- Force show edit button for Sales/Manager on tasks page --}}
+        <a href="{{ url('/admin/tasks/' . $id . '/edit') }}" class="btn btn-sm btn-outline-primary">
             <i class="bi bi-pencil-square"></i> {{ __('admins.edit') }}
         </a>
     @endif

@@ -59,23 +59,25 @@
                                 <div class="input-group input-group-merge">
                                     <span class="input-group-text bg-light border-end-0"><i class="ti ti-mail"></i></span>
                                     <input type="email" class="form-control border-start-0 @error('email') is-invalid @enderror" 
-                                        name="email" value="{{ old('email') }}" placeholder="email@domain.com">
+                                        name="email" value="{{ old('email') }}" placeholder="email@domain.com" 
+                                        pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$">
                                 </div>
                                 @error('email') <div class="text-danger extra-small mt-1">{{ $message }}</div> @enderror
                             </div>
 
                             {{-- Phone & WhatsApp Integration --}}
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold small">{{ __('clients.phone') }}</label>
+                                <label class="form-label fw-semibold small">{{ __('clients.phone') }} <span class="text-danger">*</span></label>
                                 <div class="input-group input-group-merge">
                                     <span class="input-group-text bg-light border-end-0"><i class="ti ti-phone"></i></span>
-                                    <input type="text" id="phone" class="form-control border-start-0 @error('phone') is-invalid @enderror" 
-                                        name="phone" value="{{ old('phone') }}" placeholder="2010xxxxxxxx">
+                                    <input type="tel" id="phone" class="form-control border-start-0 @error('phone') is-invalid @enderror" 
+                                        name="phone" value="{{ old('phone') }}" placeholder="2010xxxxxxxx" 
+                                        pattern="[0-9]+" inputmode="numeric" onkeypress="return isNumberKey(event)" required>
                                     <button class="btn btn-soft-success px-3 border" type="button" onclick="openWhatsApp()" data-bs-toggle="tooltip" title="Verify on WhatsApp">
                                         <i class="ti ti-brand-whatsapp fs-4"></i>
                                     </button>
                                 </div>
-                                <small class="text-muted extra-small">{{ __('Type number with country code (e.g., 2010...)') }}</small>
+                                <small class="text-muted extra-small">{{ __('Type number with country code (e.g., 2010...) - Numbers only') }}</small>
                                 @error('phone') <div class="text-danger extra-small mt-1">{{ $message }}</div> @enderror
                             </div>
 
@@ -241,8 +243,33 @@
         window.open(`https://wa.me/${cleanPhone}`, '_blank');
     }
 
-    // Initialize Tooltips if using Bootstrap 5
+    // Restrict phone input to numbers only
+    function isNumberKey(evt) {
+        var charCode = (evt.which) ? evt.which : evt.keyCode;
+        if (charCode > 31 && (charCode < 48 || charCode > 57)) {
+            return false;
+        }
+        return true;
+    }
+
+    // Prevent paste of non-numeric characters in phone field
     document.addEventListener('DOMContentLoaded', function () {
+        const phoneInput = document.getElementById('phone');
+        if (phoneInput) {
+            phoneInput.addEventListener('paste', function(e) {
+                e.preventDefault();
+                const paste = (e.clipboardData || window.clipboardData).getData('text');
+                const numbersOnly = paste.replace(/\D/g, '');
+                phoneInput.value = numbersOnly;
+            });
+            
+            phoneInput.addEventListener('input', function(e) {
+                // Remove any non-numeric characters
+                this.value = this.value.replace(/\D/g, '');
+            });
+        }
+
+        // Initialize Tooltips if using Bootstrap 5
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
         var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
             return new bootstrap.Tooltip(tooltipTriggerEl)

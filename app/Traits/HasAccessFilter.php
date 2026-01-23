@@ -50,14 +50,31 @@ trait HasAccessFilter
                 }
                 return $query->where('assigned_to_sale', $user->id);
 
-
+            case 'lead':
+                // For Sales: show leads assigned to them OR leads whose client is assigned to them
+                if ($user->role?->name === 'Sales') {
+                    return $query->where(function ($q) use ($user) {
+                        $q->where('assigned_to', $user->id)
+                          ->orWhereHas('client', function ($clientQuery) use ($user) {
+                              $clientQuery->where('assigned_to_sale', $user->id);
+                          });
+                    });
+                }
+                // For Manager: show leads whose client is assigned to them or their team
+                if ($user->role?->name === 'Manager') {
+                    $teamIds = $user->salesTeam()->pluck('id')->toArray() ?? [];
+                    $allUserIds = array_merge([$user->id], $teamIds);
+                    return $query->whereHas('client', function ($clientQuery) use ($user, $allUserIds) {
+                        $clientQuery->where('assigned_to_manager', $user->id)
+                                    ->orWhereIn('assigned_to_sale', $allUserIds);
+                    });
+                }
+                return $query->whereRaw('0 = 1');
 
             case 'deal':
                 return $query->whereHas('client', fn($q) => $this->filterAccess($q, 'client'));
             case 'task':
                 return $query->where('assigned_to', $user->id);
-
-
 
             default:
                 return $query->whereRaw('0 = 1');
@@ -77,7 +94,7 @@ trait HasAccessFilter
         }
 
         // Web users with valid roles → allowed
-        if ($user && in_array($user->role?->name, ['Manager', 'Sales', 'Admin'])) {
+        if ($user && in_array($user->role?->name, ['Manager', 'Sales'])) {
             return;
         }
 

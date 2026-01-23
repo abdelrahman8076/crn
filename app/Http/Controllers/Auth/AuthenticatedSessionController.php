@@ -37,7 +37,7 @@ class AuthenticatedSessionController extends Controller
         // Check if user has access-user-side permission
         $hasUserSideAccess = $user->hasPermission('access-user-side');
         $hasAdminAccess = $user->hasPermission('access-admin') || 
-                         in_array($user->role?->name, ['Manager', 'Sales', 'Admin']);
+                         in_array($user->role?->name, ['Manager', 'Sales']);
         
         // If user has user-side access, allow them to access regular dashboard
         if ($hasUserSideAccess) {

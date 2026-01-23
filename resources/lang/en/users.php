@@ -13,6 +13,7 @@ return [
     'save' => 'Save User',
     'cancel' => 'Cancel',
     'back' => 'Back',
+    'performance_history' => 'Performance History',
 
     // Basic info
     'basic_info' => 'Basic Information',
@@ -26,6 +27,7 @@ return [
     // Roles & assignment
     'assignment_info' => 'Assignment & Roles',
     'role' => 'Role',
+    'role.name' => 'Role',
     'select_role' => 'Select a Role',
     'manager' => 'Manager',
     'select_manager' => 'Select a Manager',

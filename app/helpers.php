@@ -35,7 +35,7 @@ if (!function_exists('canAccessAdmin')) {
             
             if ($user && (
                 $user->hasPermission('access-admin') || 
-                in_array($user->role?->name, ['Manager', 'Sales', 'Admin'])
+                in_array($user->role?->name, ['Manager', 'Sales'])
             )) {
                 return true;
             }

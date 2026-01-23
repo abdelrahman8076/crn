@@ -32,7 +32,7 @@
         </div>
         @endif
         
-        <div class="col-md-{{ $isSuperAdmin ? '3' : '6' }}">
+        <div class="col-md-{{ $isSuperAdmin ? '3' : '4' }}">
             <div class="card shadow-sm border-0 rounded-4">
                 <div class="card-body d-flex justify-content-between align-items-center">
                     <div>
@@ -46,7 +46,7 @@
             </div>
         </div>
 
-        <div class="col-md-{{ $isSuperAdmin ? '3' : '6' }}">
+        <div class="col-md-{{ $isSuperAdmin ? '3' : '4' }}">
             <div class="card shadow-sm border-0 rounded-4">
                 <div class="card-body d-flex justify-content-between align-items-center">
                     <div>
@@ -55,6 +55,20 @@
                     </div>
                     <div class="bg-danger bg-opacity-10 p-3 rounded-3">
                         <i class="ti ti-coin fs-2 text-danger"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-{{ $isSuperAdmin ? '3' : '4' }}">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted small text-uppercase fw-bold">{{ __('dashboard.closed_deals_total') }}</h6>
+                        <h3 class="fw-bold mb-0 text-dark">{{ number_format($data['totalClosedDealsAmount'] ?? 0) }} {{ __('dashboard.currency') }}</h3>
+                    </div>
+                    <div class="bg-success bg-opacity-10 p-3 rounded-3">
+                        <i class="ti ti-check fs-2 text-success"></i>
                     </div>
                 </div>
             </div>
@@ -79,7 +93,7 @@
                             <th>{{ __('admins.target_total') }}</th>
                             <th>{{ __('admins.reached') }}</th>
                             <th style="width: 150px;">{{ __('admins.progress') }}</th>
-                            <th class="pe-4 text-{{ app()->getLocale() == 'ar' ? 'start' : 'end' }}">{{ __('admins.action') }}</th>
+                            <th class="pe-4 text-{{ app()->getLocale() == 'ar' ? 'start' : 'end' }}">{{ __('dashboard.action') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -216,6 +230,12 @@
                                         <span class="fs-6 fw-bold text-primary">{{ number_format($myTarget['reached']) }} {{ __('dashboard.currency') }}</span>
                                     </div>
                                 </div>
+                                <div class="col-12">
+                                    <div class="p-2 bg-success bg-opacity-10 rounded-3 border border-success border-opacity-25">
+                                        <small class="text-success d-block text-uppercase fw-bold" style="font-size: 10px;">{{ __('dashboard.closed_deals_total') ?? 'Total Closed Deals' }}</small>
+                                        <span class="fs-6 fw-bold text-success">{{ number_format($myTarget['closed_deals_amount'] ?? 0) }} {{ __('dashboard.currency') }}</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -256,6 +276,55 @@
 </div>
 
 {{-- (Modal Section remains the same as your source) --}}
+<div class="modal fade" id="historyModal" tabindex="-1" aria-labelledby="historyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-4">
+            <div class="modal-header border-bottom-0">
+                <h5 class="modal-title fw-bold" id="historyModalLabel">
+                    <i class="ti ti-history me-2 text-primary"></i>{{ __('users.performance_history') }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="bg-light">
+                            <tr class="small text-uppercase text-muted">
+                                <th>{{ __('dashboard.period') }}</th>
+                                <th>{{ __('dashboard.target') }}</th>
+                                <th>{{ __('dashboard.achieved') }}</th>
+                                <th>{{ __('dashboard.status') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTableBody">
+                            {{-- This will be populated via AJAX or Loop --}}
+                            @if(isset($data['history']) && count($data['history']) > 0)
+                                @foreach($data['history'] as $record)
+                                <tr>
+                                    <td class="fw-bold">{{ $record->period_name }}</td>
+                                    <td>{{ number_format($record->target_amount) }}</td>
+                                    <td class="text-success">{{ number_format($record->achieved_amount) }}</td>
+                                    <td>
+                                        <span class="badge {{ $record->achieved_amount >= $record->target_amount ? 'bg-success' : 'bg-warning' }} rounded-pill">
+                                            {{ $record->achieved_amount >= $record->target_amount ? 'Completed' : 'Pending' }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                @endforeach
+                            @else
+                                <tr>
+                                    <td colspan="4" class="text-center py-4 text-muted">
+                                        {{ __('dashboard.no_history_found') }}
+                                    </td>
+                                </tr>
+                            @endif
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 {{-- Scripts --}}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

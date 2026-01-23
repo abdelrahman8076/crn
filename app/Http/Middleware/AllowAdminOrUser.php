@@ -18,11 +18,10 @@ class AllowAdminOrUser
         if (Auth::guard('web')->check()) {
             $user = Auth::guard('web')->user();
             
-            // Check if user has admin access permission or is Manager/Sales/Admin role
+            // Check if user has admin access permission or is Manager/Sales role
             if ($user && (
                 $user->hasPermission('access-admin') || 
-                in_array($user->role?->name, ['Manager', 'Sales']) ||
-                $user->role?->name === 'Admin'
+                in_array($user->role?->name, ['Manager', 'Sales'])
             )) {
                 return $next($request);
             }

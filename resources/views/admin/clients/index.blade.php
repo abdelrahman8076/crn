@@ -16,12 +16,34 @@
             <p class="text-muted small mb-0">{{ __('Manage and monitor your customer relationships.') }}</p>
         </div>
 
-        @permission('create-clients')
+        @php
+            $webUser = auth()->guard('web')->user() ?: (session('admin_user_id') ? \App\Models\User::find(session('admin_user_id')) : null);
+            $webRole = strtolower($webUser?->role?->name ?? '');
+
+            $hasCreateClientsPermission = false;
+            $hasCreateLeadsPermission = false;
+            if (auth()->guard('admin')->check()) {
+                $admin = auth()->guard('admin')->user();
+                if (!$admin->role_id || !$admin->role) {
+                    $hasCreateClientsPermission = true;
+                    $hasCreateLeadsPermission = true;
+                } else {
+                    $hasCreateClientsPermission = $admin->hasPermission('create-clients');
+                    $hasCreateLeadsPermission = $admin->hasPermission('create-leads');
+                }
+            } elseif ($webUser && $webUser->role) {
+                $hasCreateClientsPermission = $webUser->hasPermission('create-clients');
+                $hasCreateLeadsPermission = $webUser->hasPermission('create-leads');
+            }
+
+            $canCreateLead = auth()->guard('admin')->check() || $hasCreateClientsPermission || $hasCreateLeadsPermission || in_array($webRole, ['sales', 'manager']);
+        @endphp
+        @if($canCreateLead)
             <a href="{{ route('admin.clients.create') }}" class="btn btn-primary shadow-sm px-4">
                 <i class="ti ti-plus me-1 fs-5"></i>
                 {{ __('clients.create_title') }}
             </a>
-        @endpermission
+        @endif
     </div>
 
     <x-flash-success />

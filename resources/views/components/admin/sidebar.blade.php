@@ -66,9 +66,19 @@
 
                 @if(
                     (function() {
+                        // Hide System Management section for Sales and Manager users
+                        if (auth()->guard('web')->check()) {
+                            $user = auth()->guard('web')->user();
+                            $roleName = strtolower($user->role?->name ?? '');
+                            if (in_array($roleName, ['sales', 'manager'])) {
+                                return false; // Hide for Sales and Manager
+                            }
+                        }
+                        
                         $hasViewAdmins = false;
                         $hasViewUsers = false;
                         if (auth()->guard('admin')->check()) {
+                            // Admin guard users can see Users/Admins sections
                             $admin = auth()->guard('admin')->user();
                             if (!$admin->role_id || !$admin->role) {
                                 $hasViewAdmins = true;
@@ -78,6 +88,7 @@
                                 $hasViewUsers = $admin->hasPermission('view-users');
                             }
                         } elseif (auth()->guard('web')->check()) {
+                            // Web guard users: Show Users/Admins to users with permissions
                             $user = auth()->guard('web')->user();
                             if ($user && $user->role) {
                                 $hasViewAdmins = $user->hasPermission('view-admins');
@@ -98,14 +109,27 @@
                         </a>
                     </li>
                     @endpermission
-                    @permission('view-users')
+                    @if(
+                        (function() {
+                            // Hide Users menu for Sales and Manager users
+                            if (auth()->guard('web')->check()) {
+                                $user = auth()->guard('web')->user();
+                                $roleName = strtolower($user->role?->name ?? '');
+                                if (in_array($roleName, ['sales', 'manager'])) {
+                                    return false; // Hide for Sales and Manager
+                                }
+                            }
+                            // Show for admin guard or other users with permission
+                            return hasPermission('view-users');
+                        })()
+                    )
                     <li class="sidebar-item mb-1">
                         <a class="sidebar-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 text-decoration-none @if(Route::is('admin.users.*')) active @endif" href="{{ route('admin.users.index') }}">
                             <i class="ti ti-users-group fs-5"></i>
                             <span class="hide-menu">{{ __('aside.Users') }}</span>
                         </a>
                     </li>
-                    @endpermission
+                    @endif
                 @endif
 
                 @if(
@@ -137,23 +161,49 @@
                     </li>
                     @endpermission
 
-                    @permission('view-clients')
+                    @if(
+                        (function() {
+                            // Check if user is Sales or Manager - they should see "Leads" link below, not "Clients"
+                            if (auth()->guard('web')->check()) {
+                                $user = auth()->guard('web')->user();
+                                if ($user && $user->role && in_array($user->role->name, ['Sales', 'Manager'])) {
+                                    return false; // Sales/Manager users will see "Leads" link below
+                                }
+                            }
+                            // For admin guard or other users, show "Clients" link if they have permission
+                            return hasPermission('view-clients');
+                        })()
+                    )
                     <li class="sidebar-item mb-1">
                         <a class="sidebar-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 text-decoration-none @if(Route::is('admin.clients.*')) active @endif" href="{{ route('admin.clients.index') }}">
                             <i class="ti ti-building-store fs-5"></i>
                             <span class="hide-menu">{{ __('aside.Clients') }}</span>
                         </a>
                     </li>
-                    @endpermission
+                    @endif
 
-                    {{-- @permission('view-leads')
+                    @if(
+                        (function() {
+                            if (auth()->guard('admin')->check()) {
+                                $admin = auth()->guard('admin')->user();
+                                // Admin guard users with view-leads permission (ID 10) should see Leads menu pointing to /admin/clients
+                                if (!$admin->role_id || !$admin->role) return false; // Super admin sees Clients above
+                                return $admin->hasPermission('view-leads'); // Check for view-leads permission (ID 10)
+                            } elseif (auth()->guard('web')->check()) {
+                                $user = auth()->guard('web')->user();
+                                // Sales and Manager users see "Leads" menu item pointing to clients
+                                return $user && $user->role && in_array($user->role->name, ['Sales', 'Manager']);
+                            }
+                            return false;
+                        })()
+                    )
                     <li class="sidebar-item mb-1">
-                        <a class="sidebar-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 text-decoration-none @if(Route::is('admin.leads.*')) active @endif" href="{{ route('admin.leads.index') }}">
+                        <a class="sidebar-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 text-decoration-none @if(Route::is('admin.clients.*')) active @endif" href="{{ route('admin.clients.index') }}">
                             <i class="ti ti-user-search fs-5"></i>
                             <span class="hide-menu">{{ __('aside.Leads') }}</span>
                         </a>
                     </li>
-                    @endpermission --}}
+                    @endif
 
                     @permission('view-deals')
                     <li class="sidebar-item mb-1">

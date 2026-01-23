@@ -49,6 +49,7 @@
             <div class="col-md-6 ps-md-4">
                 <h5 class="mb-4 text-primary fw-bold">{{ __('users.assignment_info') }}</h5>
 
+                @if(!auth()->guard('admin')->check())
                 <div class="mb-3">
                     <label for="role_id" class="form-label">{{ __('users.role') }} *</label>
                     <select name="role_id" id="role_id" class="form-select @error('role_id') is-invalid @enderror" required>
@@ -59,6 +60,9 @@
                         @endforeach
                     </select>
                 </div>
+                @else
+                <input type="hidden" name="role_id" id="role_id" value="{{ old('role_id', $user->role_id) }}">
+                @endif
 
                 <div class="mb-3" id="manager-container">
                     <label for="manager_id" class="form-label">{{ __('users.manager') }}</label>
@@ -253,19 +257,24 @@
         const managerContainer = document.getElementById('manager-container');
 
         function toggleManagerField() {
-            const selectedOption = roleSelect.options[roleSelect.selectedIndex];
-            const roleName = selectedOption ? selectedOption.getAttribute('data-name') : '';
+            // Check if roleSelect is a select element (not hidden input for admins)
+            if (roleSelect && roleSelect.tagName === 'SELECT') {
+                const selectedOption = roleSelect.options[roleSelect.selectedIndex];
+                const roleName = selectedOption ? selectedOption.getAttribute('data-name') : '';
 
-            if (roleName === 'manager' || roleName === 'admin') {
-                managerContainer.style.display = 'none';
-                document.getElementById('manager_id').value = '';
-            } else {
-                managerContainer.style.display = 'block';
+                if (roleName === 'manager') {
+                    managerContainer.style.display = 'none';
+                    document.getElementById('manager_id').value = '';
+                } else {
+                    managerContainer.style.display = 'block';
+                }
             }
         }
 
-        toggleManagerField();
-        roleSelect.addEventListener('change', toggleManagerField);
+        if (roleSelect && roleSelect.tagName === 'SELECT') {
+            toggleManagerField();
+            roleSelect.addEventListener('change', toggleManagerField);
+        }
     });
 </script>
 @endsection
